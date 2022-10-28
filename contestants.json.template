@@ -1,0 +1,12 @@
+{
+    "league": "leagueName",
+    "contestants": [
+        {
+            "name":"tomte",
+            "session_token":"session_token"
+        },
+        {
+            "name": "proxy",
+            "proxy": "http://localhost:8081",
+        }
+}
