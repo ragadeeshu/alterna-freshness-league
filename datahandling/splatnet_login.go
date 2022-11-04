@@ -96,10 +96,10 @@ func splatnetLogin(contestant *Contestant, nsoAppVersion string, webveiwVersion 
 	}
 
 	return &splatnetAccount{
-		Nickname:      nintendoUserInfo.Nickname,
-		Image:         splatoonTokenResponse.Result.User.ImageUri,
-		AccessToken:   webServiceTokenResponse.Result.AccessToken,
-		GraphQlHeader: graphQlHeader,
+		nickname:      nintendoUserInfo.Nickname,
+		image:         splatoonTokenResponse.Result.User.ImageUri,
+		accessToken:   webServiceTokenResponse.Result.AccessToken,
+		graphQlHeader: graphQlHeader,
 	}, nil
 }
 

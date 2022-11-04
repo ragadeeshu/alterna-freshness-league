@@ -16,7 +16,7 @@ func main() {
 	}
 	err = json.Unmarshal(byteValue, &league)
 	if err != nil {
-		fmt.Println(err)
+		panic(err)
 	}
 
 	cache := datahandling.NewCache()

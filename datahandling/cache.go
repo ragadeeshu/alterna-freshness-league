@@ -11,10 +11,10 @@ type Cache struct {
 }
 
 type splatnetAccount struct {
-	Nickname      string
-	Image         string
-	AccessToken   string
-	GraphQlHeader map[string]string
+	nickname      string
+	image         string
+	accessToken   string
+	graphQlHeader map[string]string
 }
 type League struct {
 	LeagueName  string       `json:"league"`
@@ -24,6 +24,11 @@ type League struct {
 type Contestant struct {
 	Name         string `json:"name"`
 	SessionToken string `json:"session_token"`
+}
+
+type LeagueResult struct {
+	World         World
+	PlayerResults []PlayerResult
 }
 
 func NewCache() *Cache {
@@ -56,5 +61,6 @@ func (c *Cache) GetLeagueData(league *League) (interface{}, error) {
 		}
 		splatnetData = append(splatnetData, data)
 	}
-	return splatnetData, nil
+
+	return calculateResults(splatnetData), nil
 }

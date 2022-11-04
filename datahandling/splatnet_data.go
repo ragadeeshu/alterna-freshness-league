@@ -8,7 +8,7 @@ import (
 )
 
 const heroHistoryQuery = "fbee1a882371d4e3becec345636d7d1c"
-const historyRecordQuery = "29957cf5d57b893934de857317cd46d8"
+const historyRecordQuery = "9d4ef9fba3f84d6933bb1f6f436f7200"
 const graphQlURL = "https://api.lp1.av5ja.srv.nintendo.net/api/graphql"
 
 type historyRecordQueryResponse struct {
@@ -23,8 +23,6 @@ type historyRecordQueryResponse struct {
 						URL string `json:"url"`
 					} `json:"image"`
 				} `json:"badges"`
-				ImageUri   string `json:"imageUri"`
-				Name       string `json:"name"`
 				Background struct {
 					TextColor struct {
 						A float64 `json:"a"`
@@ -113,12 +111,12 @@ func doGraphQlQuery(query string, account *splatnetAccount, jsonTarget interface
 	if err != nil {
 		return fmt.Errorf("failed to create request: %w", err)
 	}
-	for k, v := range account.GraphQlHeader {
+	for k, v := range account.graphQlHeader {
 		req.Header.Set(k, v)
 	}
 	req.AddCookie(&http.Cookie{
 		Name:  "_gtoken",
-		Value: account.AccessToken,
+		Value: account.accessToken,
 	})
 	response, err := client.Do(req)
 	if err != nil {
