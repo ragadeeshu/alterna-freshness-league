@@ -286,7 +286,7 @@ func callImink(idToken string, hashMethod int, client *http.Client) (*iminkApiRe
 		return nil, fmt.Errorf("failed to create request: %w", err)
 	}
 	req.Header.Set("Content-Type", "application/json; charset=utf-8")
-	req.Header.Set("User-Agent", "AlternaFreshnessLeague/0.1")
+	req.Header.Set("User-Agent", "AlternaFreshnessLeague/0.2")
 	response, err := client.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("failed to execute request: %w", err)
