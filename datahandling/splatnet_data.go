@@ -72,6 +72,8 @@ type heroHistoryQueryResponse struct {
 }
 
 type splatnetData struct {
+	nsoName       string
+	nsoImageUrl   string
 	historyRecord historyRecordQueryResponse
 	heroRecord    heroHistoryQueryResponse
 }
@@ -88,6 +90,8 @@ func getSplatnetData(account *splatnetAccount, client *http.Client) (*splatnetDa
 		return nil, fmt.Errorf("failed to get hero mode history: %w", err)
 	}
 	return &splatnetData{
+		nsoName:       account.nsoName,
+		nsoImageUrl:   account.nsoImage,
 		historyRecord: historyRecordResponse,
 		heroRecord:    heroHistoryResponse,
 	}, nil

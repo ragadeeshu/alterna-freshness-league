@@ -2,10 +2,11 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
+	"os"
 
 	"github.com/ragadeeshu/alterna-freshness-league/datahandling"
+	"github.com/ragadeeshu/alterna-freshness-league/web"
 )
 
 func main() {
@@ -19,10 +20,13 @@ func main() {
 		panic(err)
 	}
 
-	cache := datahandling.NewCache()
-	data, err := cache.GetLeagueData(&league)
-	if err != nil {
-		fmt.Println(err)
+	var port string
+	if len(os.Args) > 1 {
+		port = os.Args[1]
+	} else {
+		port = "8080"
 	}
-	fmt.Printf("%+v", data)
+
+	cache := datahandling.NewCache()
+	web.StartWebServer(cache, &league, port)
 }

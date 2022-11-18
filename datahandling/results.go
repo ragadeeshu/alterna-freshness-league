@@ -26,6 +26,8 @@ type Stage struct {
 }
 
 type PlayerResult struct {
+	NsoImageUrl        string
+	NsoName            string
 	ByName             string
 	Name               string
 	NameId             string
@@ -65,11 +67,11 @@ type StageResult struct {
 	WeaponImageURL string
 }
 
-func calculateResults(splatnetDatas []*splatnetData) *LeagueResult {
+func calculateResults(splatnetDatas []*splatnetData) LeagueResult {
 	worldView := gatherWorldView(splatnetDatas)
 	playerResults := gatherPlayerTimes(splatnetDatas)
 	score(playerResults, &worldView)
-	return &LeagueResult{
+	return LeagueResult{
 		World:         worldView,
 		PlayerResults: *playerResults,
 	}
@@ -124,15 +126,17 @@ func gatherPlayerTimes(splatnetDatas []*splatnetData) *[]PlayerResult {
 			badgeURLs = append(badgeURLs, badge.Image.URL)
 		}
 		playerResult := PlayerResult{
-			ByName: playerData.historyRecord.Data.CurrentPlayer.ByName,
-			Name:   playerData.historyRecord.Data.CurrentPlayer.Name,
-			NameId: playerData.historyRecord.Data.CurrentPlayer.NameId,
+			NsoName:     playerData.nsoName,
+			NsoImageUrl: playerData.nsoImageUrl,
+			ByName:      playerData.historyRecord.Data.CurrentPlayer.ByName,
+			Name:        playerData.historyRecord.Data.CurrentPlayer.Name,
+			NameId:      playerData.historyRecord.Data.CurrentPlayer.NameId,
 			NamePlate: NamePlate{
 				BadgeURLs:          badgeURLs,
 				TextA:              playerData.historyRecord.Data.CurrentPlayer.NamePlate.Background.TextColor.A,
-				TextR:              playerData.historyRecord.Data.CurrentPlayer.NamePlate.Background.TextColor.R,
-				TextG:              playerData.historyRecord.Data.CurrentPlayer.NamePlate.Background.TextColor.G,
-				TextB:              playerData.historyRecord.Data.CurrentPlayer.NamePlate.Background.TextColor.B,
+				TextR:              playerData.historyRecord.Data.CurrentPlayer.NamePlate.Background.TextColor.R * 255,
+				TextG:              playerData.historyRecord.Data.CurrentPlayer.NamePlate.Background.TextColor.G * 255,
+				TextB:              playerData.historyRecord.Data.CurrentPlayer.NamePlate.Background.TextColor.B * 255,
 				BackgroundImageURL: playerData.historyRecord.Data.CurrentPlayer.NamePlate.Background.Image.URL,
 			},
 			ExplorationRate:    playerData.heroRecord.Data.HeroRecord.ProgressRate,
@@ -215,7 +219,7 @@ func score(playerResults *[]PlayerResult, worldView *World) {
 		(*playerResults)[i].Rank = i + 1
 		(*playerResults)[i].Freshness = freshness[(*playerResults)[i].TotalScore/freshnessThreshold]
 		(*playerResults)[i].BestSite = 1
-		(*playerResults)[i].WorstSite = 5
+		(*playerResults)[i].WorstSite = 6
 		bestSiteRank := len(*playerResults) + 1
 		worstSiteRank := 1
 		for siteNumber, site := range (*playerResults)[i].ResultBySite {

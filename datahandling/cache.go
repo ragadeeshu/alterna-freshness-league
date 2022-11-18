@@ -17,8 +17,8 @@ type LeagueDataCache struct {
 }
 
 type splatnetAccount struct {
-	nickname      string
-	image         string
+	nsoName       string
+	nsoImage      string
 	accessToken   string
 	graphQlHeader map[string]string
 }
@@ -49,7 +49,7 @@ func NewCache() *LeagueDataCache {
 	}
 }
 
-func (c *LeagueDataCache) GetLeagueData(league *League) (interface{}, error) {
+func (c *LeagueDataCache) GetLeagueData(league *League) (LeagueResult, error) {
 
 	webViewVersionChannel := make(chan string)
 	nsoAppVersionChannel := make(chan string)
@@ -62,14 +62,14 @@ func (c *LeagueDataCache) GetLeagueData(league *League) (interface{}, error) {
 	select {
 	case webViewVersion = <-webViewVersionChannel:
 	case err := <-errorChannel:
-		return nil, err
+		return LeagueResult{}, err
 	}
 
 	var nsoAppVersion string
 	select {
 	case nsoAppVersion = <-nsoAppVersionChannel:
 	case err := <-errorChannel:
-		return nil, err
+		return LeagueResult{}, err
 	}
 
 	splatnetDatas := []*splatnetData{}
