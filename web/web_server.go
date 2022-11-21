@@ -1,6 +1,7 @@
 package web
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"math"
@@ -10,7 +11,7 @@ import (
 	"github.com/ragadeeshu/alterna-freshness-league/datahandling"
 )
 
-func StartWebServer(cache *datahandling.LeagueDataCache, league *datahandling.League, port string) {
+func StartWebServer(cache *datahandling.LeagueDataCache, league datahandling.League, port string) {
 	handler := func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/" {
 			http.Error(w, "404 not found.", http.StatusNotFound)
@@ -81,5 +82,33 @@ func StartWebServer(cache *datahandling.LeagueDataCache, league *datahandling.Le
 	fileServer := http.FileServer(http.Dir("./web/content/static"))
 	http.HandleFunc("/", handler)
 	http.Handle("/static/", http.StripPrefix("/static", fileServer))
+	log.Fatal(http.ListenAndServe(":"+port, nil))
+}
+
+func StartProxyServer(cache *datahandling.LeagueDataCache, league datahandling.League, port string) {
+	handler := func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != "/" {
+			http.Error(w, "404 not found.", http.StatusNotFound)
+			return
+		}
+		if r.Method != "GET" {
+			http.Error(w, "Method is not supported.", http.StatusNotFound)
+			return
+		}
+		w.Header().Set("Content-Type", "application/json")
+		splatnetDataPointers, err := cache.GetSplatnetDatas(league)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+		var splatnetDatas []datahandling.SplatnetData
+		for _, splatnetData := range splatnetDataPointers {
+			splatnetDatas = append(splatnetDatas, *splatnetData)
+		}
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(splatnetDatas)
+	}
+
+	http.HandleFunc("/", handler)
 	log.Fatal(http.ListenAndServe(":"+port, nil))
 }

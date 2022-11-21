@@ -2,31 +2,35 @@ package main
 
 import (
 	"encoding/json"
+	"flag"
 	"io/ioutil"
-	"os"
 
+	"github.com/google/go-cmp/cmp"
 	"github.com/ragadeeshu/alterna-freshness-league/datahandling"
 	"github.com/ragadeeshu/alterna-freshness-league/web"
 )
 
 func main() {
 	var league datahandling.League
-	byteValue, err := ioutil.ReadFile("contestants.json")
-	if err != nil {
-		return
-	}
-	err = json.Unmarshal(byteValue, &league)
-	if err != nil {
-		panic(err)
-	}
+	port := flag.String("port", "8080", "Port to bind to, default 8080")
+	proxy := flag.Bool("proxy", false, "Start in proxy mode")
+	flag.Var(&league, "league", "Contents of contestants.json, tries to read file of not set")
+	flag.Parse()
 
-	var port string
-	if len(os.Args) > 1 {
-		port = os.Args[1]
-	} else {
-		port = "8080"
+	if cmp.Equal(league, datahandling.League{}) {
+		byteValue, err := ioutil.ReadFile("contestants.json")
+		if err != nil {
+			return
+		}
+		err = json.Unmarshal(byteValue, &league)
+		if err != nil {
+			panic(err)
+		}
 	}
-
 	cache := datahandling.NewCache()
-	web.StartWebServer(cache, &league, port)
+	if *proxy {
+		web.StartProxyServer(cache, league, *port)
+	} else {
+		web.StartWebServer(cache, league, *port)
+	}
 }

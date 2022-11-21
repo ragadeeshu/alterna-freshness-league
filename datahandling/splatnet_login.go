@@ -273,8 +273,8 @@ func getNintendoAccessToken(contestant *Contestant, client *http.Client) (*ninte
 
 func callImink(idToken string, hashMethod int, client *http.Client) (*iminkApiResponse, error) {
 	body := map[string]interface{}{
-		"token":      idToken,
-		"hashMethod": hashMethod,
+		"token":       idToken,
+		"hash_method": hashMethod,
 	}
 	jsonBody, err := json.Marshal(body)
 	if err != nil {
@@ -286,7 +286,7 @@ func callImink(idToken string, hashMethod int, client *http.Client) (*iminkApiRe
 		return nil, fmt.Errorf("failed to create request: %w", err)
 	}
 	req.Header.Set("Content-Type", "application/json; charset=utf-8")
-	req.Header.Set("User-Agent", "AlternaFreshnessLeague/0.2")
+	req.Header.Set("User-Agent", "AlternaFreshnessLeague/1.0")
 	response, err := client.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("failed to execute request: %w", err)

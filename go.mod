@@ -2,7 +2,10 @@ module github.com/ragadeeshu/alterna-freshness-league
 
 go 1.17
 
-require github.com/anaskhan96/soup v1.2.5
+require (
+	github.com/anaskhan96/soup v1.2.5
+	github.com/google/go-cmp v0.5.9
+)
 
 require (
 	github.com/patrickmn/go-cache v2.1.0+incompatible

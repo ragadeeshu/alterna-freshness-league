@@ -6,7 +6,12 @@
             "session_token":"session_token"
         },
         {
-            "name": "proxy",
-            "proxy": "http://localhost:8081",
+            "name": "tomte2",
+            "session_token": "session_token"
         }
+    ],
+    "proxies": [
+        "http://localhost:8081",
+        "http://localhost:8082"
+    ]
 }

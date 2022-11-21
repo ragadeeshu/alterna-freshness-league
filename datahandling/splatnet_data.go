@@ -71,14 +71,14 @@ type heroHistoryQueryResponse struct {
 	} `json:"data"`
 }
 
-type splatnetData struct {
-	nsoName       string
-	nsoImageUrl   string
-	historyRecord historyRecordQueryResponse
-	heroRecord    heroHistoryQueryResponse
+type SplatnetData struct {
+	NsoName       string                     `json:"nsoName"`
+	NsoImageUrl   string                     `json:"nsoImageUrl"`
+	HistoryRecord historyRecordQueryResponse `json:"historyRecord"`
+	HeroRecord    heroHistoryQueryResponse   `json:"heroRecord"`
 }
 
-func getSplatnetData(account *splatnetAccount, client *http.Client) (*splatnetData, error) {
+func getSplatnetData(account *splatnetAccount, client *http.Client) (*SplatnetData, error) {
 	var historyRecordResponse historyRecordQueryResponse
 	err := doGraphQlQuery(historyRecordQuery, account, &historyRecordResponse, client)
 	if err != nil {
@@ -89,11 +89,11 @@ func getSplatnetData(account *splatnetAccount, client *http.Client) (*splatnetDa
 	if err != nil {
 		return nil, fmt.Errorf("failed to get hero mode history: %w", err)
 	}
-	return &splatnetData{
-		nsoName:       account.nsoName,
-		nsoImageUrl:   account.nsoImage,
-		historyRecord: historyRecordResponse,
-		heroRecord:    heroHistoryResponse,
+	return &SplatnetData{
+		NsoName:       account.nsoName,
+		NsoImageUrl:   account.nsoImage,
+		HistoryRecord: historyRecordResponse,
+		HeroRecord:    heroHistoryResponse,
 	}, nil
 }
 

@@ -67,7 +67,7 @@ type StageResult struct {
 	WeaponImageURL string
 }
 
-func calculateResults(splatnetDatas []*splatnetData) LeagueResult {
+func calculateResults(splatnetDatas []*SplatnetData) LeagueResult {
 	worldView := gatherWorldView(splatnetDatas)
 	playerResults := gatherPlayerTimes(splatnetDatas)
 	score(playerResults, &worldView)
@@ -77,11 +77,11 @@ func calculateResults(splatnetDatas []*splatnetData) LeagueResult {
 	}
 }
 
-func gatherWorldView(splatnetDatas []*splatnetData) (world World) {
+func gatherWorldView(splatnetDatas []*SplatnetData) (world World) {
 	sites := make(map[int]*Site)
 	siteStages := make(map[int]map[int]*Stage)
 	for _, splatnetData := range splatnetDatas {
-		for _, splatnetSite := range splatnetData.heroRecord.Data.HeroRecord.Sites {
+		for _, splatnetSite := range splatnetData.HeroRecord.Data.HeroRecord.Sites {
 			// find all sites from this data
 			if _, found := sites[splatnetSite.SiteNumber]; !found {
 				sites[splatnetSite.SiteNumber] = &Site{
@@ -118,33 +118,33 @@ func gatherWorldView(splatnetDatas []*splatnetData) (world World) {
 	return
 }
 
-func gatherPlayerTimes(splatnetDatas []*splatnetData) *[]PlayerResult {
+func gatherPlayerTimes(splatnetDatas []*SplatnetData) *[]PlayerResult {
 	playerResults := []PlayerResult{}
 	for _, playerData := range splatnetDatas {
 		badgeURLs := []string{}
-		for _, badge := range playerData.historyRecord.Data.CurrentPlayer.NamePlate.Badges {
+		for _, badge := range playerData.HistoryRecord.Data.CurrentPlayer.NamePlate.Badges {
 			badgeURLs = append(badgeURLs, badge.Image.URL)
 		}
 		playerResult := PlayerResult{
-			NsoName:     playerData.nsoName,
-			NsoImageUrl: playerData.nsoImageUrl,
-			ByName:      playerData.historyRecord.Data.CurrentPlayer.ByName,
-			Name:        playerData.historyRecord.Data.CurrentPlayer.Name,
-			NameId:      playerData.historyRecord.Data.CurrentPlayer.NameId,
+			NsoName:     playerData.NsoName,
+			NsoImageUrl: playerData.NsoImageUrl,
+			ByName:      playerData.HistoryRecord.Data.CurrentPlayer.ByName,
+			Name:        playerData.HistoryRecord.Data.CurrentPlayer.Name,
+			NameId:      playerData.HistoryRecord.Data.CurrentPlayer.NameId,
 			NamePlate: NamePlate{
 				BadgeURLs:          badgeURLs,
-				TextA:              playerData.historyRecord.Data.CurrentPlayer.NamePlate.Background.TextColor.A,
-				TextR:              playerData.historyRecord.Data.CurrentPlayer.NamePlate.Background.TextColor.R * 255,
-				TextG:              playerData.historyRecord.Data.CurrentPlayer.NamePlate.Background.TextColor.G * 255,
-				TextB:              playerData.historyRecord.Data.CurrentPlayer.NamePlate.Background.TextColor.B * 255,
-				BackgroundImageURL: playerData.historyRecord.Data.CurrentPlayer.NamePlate.Background.Image.URL,
+				TextA:              playerData.HistoryRecord.Data.CurrentPlayer.NamePlate.Background.TextColor.A,
+				TextR:              playerData.HistoryRecord.Data.CurrentPlayer.NamePlate.Background.TextColor.R * 255,
+				TextG:              playerData.HistoryRecord.Data.CurrentPlayer.NamePlate.Background.TextColor.G * 255,
+				TextB:              playerData.HistoryRecord.Data.CurrentPlayer.NamePlate.Background.TextColor.B * 255,
+				BackgroundImageURL: playerData.HistoryRecord.Data.CurrentPlayer.NamePlate.Background.Image.URL,
 			},
-			ExplorationRate:    playerData.heroRecord.Data.HeroRecord.ProgressRate,
-			ExplorationPhrase:  playerData.heroRecord.Data.HeroRecord.ProgressPhrase,
-			ExplorationComment: playerData.heroRecord.Data.HeroRecord.ProgressComment,
+			ExplorationRate:    playerData.HeroRecord.Data.HeroRecord.ProgressRate,
+			ExplorationPhrase:  playerData.HeroRecord.Data.HeroRecord.ProgressPhrase,
+			ExplorationComment: playerData.HeroRecord.Data.HeroRecord.ProgressComment,
 			ResultBySite:       map[int]*SiteResult{},
 		}
-		for _, site := range playerData.heroRecord.Data.HeroRecord.Sites {
+		for _, site := range playerData.HeroRecord.Data.HeroRecord.Sites {
 			playerResult.ResultBySite[site.SiteNumber] = &SiteResult{
 				ResultByStage: map[int]*StageResult{},
 			}
