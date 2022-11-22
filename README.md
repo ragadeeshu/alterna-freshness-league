@@ -1,5 +1,5 @@
 # alterna-freshness-league
-This is little tool that compares your splatoon 3 single player times with those of your friends. Uses the amazing imink f-api by @JoneWang https://github.com/imink-app/f-API
+This is little tool that compares your splatoon 3 single player times with those of your friends. Uses the amazing [imink f-api](https://github.com/imink-app/f-API) by [@JoneWang](https://github.com/JoneWang). Special thanks to [@frozenpandaman](https://github.com/frozenpandaman) for showing how to navigate the login flow over in [s3s](https://github.com/frozenpandaman/s3s)
 
 To use first create a `contestants.json` with the following structure:
 ```
