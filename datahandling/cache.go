@@ -24,18 +24,17 @@ type splatnetAccount struct {
 	graphQlHeader map[string]string
 }
 type League struct {
-	LeagueName  string       `json:"league"`
 	Contestants []Contestant `json:"contestants"`
 	Proxies     []string     `json:"proxies"`
 }
 
-func (this *League) String() string {
-	b, _ := json.Marshal(*this)
+func (l *League) String() string {
+	b, _ := json.Marshal(*l)
 	return string(b)
 }
 
-func (this *League) Set(s string) error {
-	return json.Unmarshal([]byte(s), this)
+func (l *League) Set(s string) error {
+	return json.Unmarshal([]byte(s), l)
 }
 
 type Contestant struct {
