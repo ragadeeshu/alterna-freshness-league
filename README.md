@@ -26,13 +26,13 @@ To use first create a `contestants.json` with the following structure:
 To run a server:
 
  ```
- docker run -d --restart=always --env CONTESTANTS=`jq -c < contestants.json` -p <port>:8080 ghcr.io/ragadeeshu/alterna-freshness-league:latest
+ docker run -d --restart=always --env CONTESTANTS=`jq -c . contestants.json` -p <port>:8080 ghcr.io/ragadeeshu/alterna-freshness-league:latest
  ```
 
 Or, to run a proxy:
 
  ```
- docker run -d --restart=always --env CONTESTANTS=`jq -c < contestants.json` --env PROXY=true -p <port>:8080 ghcr.io/ragadeeshu/alterna-freshness-league:latest
+ docker run -d --restart=always --env CONTESTANTS=`jq -c . contestants.json` --env PROXY=true -p <port>:8080 ghcr.io/ragadeeshu/alterna-freshness-league:latest
  ```
 
  You could of course build/run the go app yourself, if you feel like it. Arguments are
