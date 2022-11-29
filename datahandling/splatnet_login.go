@@ -4,9 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"net/http"
-	"regexp"
 	"strings"
 
 	"github.com/anaskhan96/soup"
@@ -311,24 +309,25 @@ func getNsoAppVersion(client *http.Client) (string, error) {
 }
 
 func getWebViewVersion(client *http.Client) (string, error) {
-	splatnet3URL := "https://api.lp1.av5ja.srv.nintendo.net"
-	response, err := soup.GetWithClient(splatnet3URL, client)
-	if err != nil {
-		return "", fmt.Errorf("failed to get soup response: %w", err)
-	}
-	doc := soup.HTMLParse(response)
-	script := doc.Find("script", "defer", "defer")
-	mainSrcipt := script.Attrs()["src"]
-	mainJs, err := client.Get("https://api.lp1.av5ja.srv.nintendo.net" + mainSrcipt)
-	if err != nil {
-		return "", fmt.Errorf("failed to get mainJs: %w", err)
-	}
-	defer mainJs.Body.Close()
-	r := regexp.MustCompile(`\b(?P<revision>[0-9a-f]{40})\b.*revision_info_not_set\"\),.*?=\"(?P<version>\d+\.\d+\.\d+)`)
-	resBody, err := ioutil.ReadAll(mainJs.Body)
-	if err != nil {
-		return "", fmt.Errorf("failed to read mainJs body: %w", err)
-	}
-	revisionAndVersion := r.FindStringSubmatch(string(resBody))
-	return fmt.Sprintf("%s-%s", revisionAndVersion[2], revisionAndVersion[1][:8]), nil
+	// splatnet3URL := "https://api.lp1.av5ja.srv.nintendo.net"
+	// response, err := soup.GetWithClient(splatnet3URL, client)
+	// if err != nil {
+	// 	return "", fmt.Errorf("failed to get soup response: %w", err)
+	// }
+	// doc := soup.HTMLParse(response)
+	// script := doc.Find("script", "defer", "defer")
+	// mainSrcipt := script.Attrs()["src"]
+	// mainJs, err := client.Get("https://api.lp1.av5ja.srv.nintendo.net" + mainSrcipt)
+	// if err != nil {
+	// 	return "", fmt.Errorf("failed to get mainJs: %w", err)
+	// }
+	// defer mainJs.Body.Close()
+	// r := regexp.MustCompile(`\b(?P<revision>[0-9a-f]{40})\b.*revision_info_not_set\"\),.*?=\"(?P<version>\d+\.\d+\.\d+)`)
+	// resBody, err := ioutil.ReadAll(mainJs.Body)
+	// if err != nil {
+	// 	return "", fmt.Errorf("failed to read mainJs body: %w", err)
+	// }
+	// revisionAndVersion := r.FindStringSubmatch(string(resBody))
+	// return fmt.Sprintf("%s-%s", revisionAndVersion[2], revisionAndVersion[1][:8]), nil
+	return "1.0.0-433ec0e8", nil
 }

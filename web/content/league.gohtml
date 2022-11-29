@@ -93,7 +93,7 @@
                 {{end}}
             </div>
         </div>
-        <div class="Sites">
+        <div class="Sites" id="SiteWrapper">
         {{range $_, $site := .World.Sites}}
             <div class="Site">
                 <div class="SiteHeader">
@@ -151,12 +151,21 @@
             {{end}}
         </div>
         <div class="Footer">
-            <span>This project is not affiliated with Nintendo. All product names, logos, images, fonts, and brands are property of their respective owners.</span>
+            <span>This project is not affiliated with Nintendo.
+            All product names, logos, images, fonts, and brands are property of their respective owners.</span>
             <br>
             <a class="github-button" href="https://github.com/ragadeeshu/alterna-freshness-league" data-show-count="true" aria-label="Star ragadeeshu/alterna-freshness-league on GitHub">Star</a>
             <a class="github-button" href="https://github.com/ragadeeshu/alterna-freshness-league/issues" data-icon="octicon-issue-opened" aria-label="Issue ragadeeshu/alterna-freshness-league on GitHub">Issue</a>
         </div>
     </div>
+    <script>
+        function scale(){
+            elm = document.getElementById("SiteWrapper");
+            elm.style.transform='scale('+(elm.clientWidth-1)/elm.scrollWidth+')';
+        }
+        scale();
+        window.onresize = scale;
+    </script>
 </body>
 
 </html>

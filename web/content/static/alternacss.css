@@ -311,7 +311,7 @@ img {
   position: relative;
   z-index: 0;
   margin: 1em;
-  width: 30em;
+  min-width: 28em;
 }
 
 .ProfileTitle {
@@ -487,7 +487,7 @@ img {
 .ScoreSummaryValue {
   align-self: flex-end;
   font-family: var(--font-family-s2);
-  font-size: 20px;
+  font-size: 16px;
   justify-self: flex-end;
   text-align: right;
 }
@@ -593,6 +593,7 @@ img {
   background-color: #191c20;
   color: white;
   text-align: center;
+  font-size: 12px;
 }
 
 @keyframes scroller {
