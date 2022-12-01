@@ -5,9 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"strings"
-
-	"github.com/anaskhan96/soup"
 )
 
 type bulletApiTokenResponse struct {
@@ -299,35 +296,45 @@ func callImink(idToken string, hashMethod int, client *http.Client) (*iminkApiRe
 }
 
 func getNsoAppVersion(client *http.Client) (string, error) {
-	response, err := soup.GetWithClient("https://apps.apple.com/us/app/nintendo-switch-online/id1234806557", client)
+	fallback := "2.4.0"
+	requestURL := "https://raw.githubusercontent.com/nintendoapis/nintendo-app-versions/main/data/coral-google-play.json"
+	req, err := http.NewRequest(http.MethodGet, requestURL, nil)
 	if err != nil {
-		return "", fmt.Errorf("failed to get soup response: %w", err)
+		return fallback, fmt.Errorf("failed to create request: %w", err)
 	}
-	doc := soup.HTMLParse(response)
-	versionString := doc.Find("p", "class", "whats-new__latest__version")
-	return strings.ReplaceAll(versionString.Text(), "Version ", ""), nil
+	response, err := client.Do(req)
+	if err != nil {
+		return fallback, fmt.Errorf("failed to execute request: %w", err)
+	}
+	defer response.Body.Close()
+	var versionResponse struct {
+		Version string `json:"version"`
+	}
+	err = json.NewDecoder(response.Body).Decode(&versionResponse)
+	if err != nil {
+		return fallback, fmt.Errorf("failed to decode json from response: %w", err)
+	}
+	return versionResponse.Version, nil
 }
 
 func getWebViewVersion(client *http.Client) (string, error) {
-	// splatnet3URL := "https://api.lp1.av5ja.srv.nintendo.net"
-	// response, err := soup.GetWithClient(splatnet3URL, client)
-	// if err != nil {
-	// 	return "", fmt.Errorf("failed to get soup response: %w", err)
-	// }
-	// doc := soup.HTMLParse(response)
-	// script := doc.Find("script", "defer", "defer")
-	// mainSrcipt := script.Attrs()["src"]
-	// mainJs, err := client.Get("https://api.lp1.av5ja.srv.nintendo.net" + mainSrcipt)
-	// if err != nil {
-	// 	return "", fmt.Errorf("failed to get mainJs: %w", err)
-	// }
-	// defer mainJs.Body.Close()
-	// r := regexp.MustCompile(`\b(?P<revision>[0-9a-f]{40})\b.*revision_info_not_set\"\),.*?=\"(?P<version>\d+\.\d+\.\d+)`)
-	// resBody, err := ioutil.ReadAll(mainJs.Body)
-	// if err != nil {
-	// 	return "", fmt.Errorf("failed to read mainJs body: %w", err)
-	// }
-	// revisionAndVersion := r.FindStringSubmatch(string(resBody))
-	// return fmt.Sprintf("%s-%s", revisionAndVersion[2], revisionAndVersion[1][:8]), nil
-	return "1.0.0-433ec0e8", nil
+	fallback := "2.0.0-1b57b7ac"
+	requestURL := "https://raw.githubusercontent.com/nintendoapis/nintendo-app-versions/main/data/splatnet3-app.json"
+	req, err := http.NewRequest(http.MethodGet, requestURL, nil)
+	if err != nil {
+		return fallback, fmt.Errorf("failed to create request: %w", err)
+	}
+	response, err := client.Do(req)
+	if err != nil {
+		return fallback, fmt.Errorf("failed to execute request: %w", err)
+	}
+	defer response.Body.Close()
+	var versionResponse struct {
+		Version string `json:"web_app_ver"`
+	}
+	err = json.NewDecoder(response.Body).Decode(&versionResponse)
+	if err != nil {
+		return fallback, fmt.Errorf("failed to decode json from response: %w", err)
+	}
+	return versionResponse.Version, nil
 }

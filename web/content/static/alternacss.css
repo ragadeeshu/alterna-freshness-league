@@ -165,7 +165,6 @@ body {
   background-color: #292e35;
   font-family: var(--font-family-normal);
   overflow: scroll;
-  overscroll-behavior: none;
   touch-action: manipulation;
 }
 
@@ -194,7 +193,7 @@ h2,p {
   color: #fff;
   box-sizing: border-box;
   min-height: 100%;
-  padding: 0 0 70px;
+  padding: 0 0 80px;
   position: relative;
 }
 
@@ -586,7 +585,7 @@ img {
 .Footer {
   font-family: var(--font-family-s2);
   bottom: 0;
-  height: 70px;
+  height: 80px;
   width: 100%;
   left: 0;
   position: absolute;
@@ -594,6 +593,10 @@ img {
   color: white;
   text-align: center;
   font-size: 12px;
+}
+
+#SitesInner{
+  transform-origin: 0% 0%;
 }
 
 @keyframes scroller {

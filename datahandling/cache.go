@@ -70,24 +70,12 @@ func (c *LeagueDataCache) GetLeagueData(league League) (LeagueResult, error) {
 func (c *LeagueDataCache) GetSplatnetDatas(league League) ([]*SplatnetData, error) {
 	webViewVersionChannel := make(chan string)
 	nsoAppVersionChannel := make(chan string)
-	errorChannel := make(chan error)
 
-	go getVersionAsync(c.versionCache, "webViewVersion", func() (string, error) { return getWebViewVersion(c.client) }, webViewVersionChannel, errorChannel)
-	go getVersionAsync(c.versionCache, "nsoAppVersion", func() (string, error) { return getNsoAppVersion(c.client) }, nsoAppVersionChannel, errorChannel)
+	go getVersionAsync(c.versionCache, "webViewVersion", func() (string, error) { return getWebViewVersion(c.client) }, webViewVersionChannel)
+	go getVersionAsync(c.versionCache, "nsoAppVersion", func() (string, error) { return getNsoAppVersion(c.client) }, nsoAppVersionChannel)
 
-	var webViewVersion string
-	select {
-	case webViewVersion = <-webViewVersionChannel:
-	case err := <-errorChannel:
-		return nil, err
-	}
-
-	var nsoAppVersion string
-	select {
-	case nsoAppVersion = <-nsoAppVersionChannel:
-	case err := <-errorChannel:
-		return nil, err
-	}
+	webViewVersion := <-webViewVersionChannel
+	nsoAppVersion := <-nsoAppVersionChannel
 
 	splatnetDatas := []*SplatnetData{}
 	splatnetDataChannel := make(chan *SplatnetData)
@@ -110,20 +98,18 @@ func (c *LeagueDataCache) GetSplatnetDatas(league League) ([]*SplatnetData, erro
 	return splatnetDatas, nil
 }
 
-func getVersionAsync(versionCache *cache.Cache, versionType string, fetcher func() (string, error), versionChannel chan string, errorChannel chan error) {
+func getVersionAsync(versionCache *cache.Cache, versionType string, fetcher func() (string, error), versionChannel chan string) {
 	if cacheValue, found := versionCache.Get(versionType); found {
 		versionChannel <- cacheValue.(string)
 		return
 	}
 	version, err := fetcher()
 	if err != nil {
-		errorChannel <- fmt.Errorf("failed to get %s: %w", versionType, err)
-		return
+		fmt.Println(fmt.Errorf("failed to get %s: %w", versionType, err))
 	}
 	err = versionCache.Add(versionType, version, cache.DefaultExpiration)
 	if err != nil {
-		errorChannel <- fmt.Errorf("failed to cache %s: %w", versionType, err)
-		return
+		fmt.Println(fmt.Errorf("failed to cache %s: %w", versionType, err))
 	}
 	versionChannel <- version
 }
@@ -173,6 +159,9 @@ func getSplatnetProxyAsync(
 ) {
 	defer wg.Done()
 	req, err := http.NewRequest("GET", proxy, nil)
+	if err != nil {
+		fmt.Println(fmt.Errorf("failed to create request: %w", err))
+	}
 	response, err := client.Do(req)
 	if err != nil {
 		fmt.Println(fmt.Errorf("failed to get from proxy %s: %w", proxy, err))
