@@ -35,6 +35,11 @@ Or, to run a proxy:
  docker run -d --restart=always --env CONTESTANTS=`jq -c . contestants.json` --env PROXY=true -p <port>:8080 ghcr.io/ragadeeshu/alterna-freshness-league:latest
  ```
 
+ If you don't facy sending json as an argument, you could mount it instead:
+  ```
+ docker run -d --restart=always -v <path-to-contestants-file>:/app/contestants.json -p <port>:8080 ghcr.io/ragadeeshu/alterna-freshness-league:latest
+ ```
+
  You could of course build/run the go app yourself, if you feel like it. Arguments are
  ```
  Usage of ./alterna-freshness-league:
