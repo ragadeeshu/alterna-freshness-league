@@ -164,7 +164,7 @@ html, body {
 body {
   background-color: #292e35;
   font-family: var(--font-family-normal);
-  overflow: scroll;
+  overflow-x: hidden;
   touch-action: manipulation;
 }
 
@@ -310,7 +310,7 @@ img {
   position: relative;
   z-index: 0;
   margin: 1em;
-  min-width: 25em;
+  min-width: 24em;
 }
 
 .ProfileTitle {

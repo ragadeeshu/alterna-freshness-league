@@ -38,7 +38,18 @@
     </div>
     <div id="wrapper">
     </div>
-    <script>     
+    <script>
+        function resize(){
+            let outer = document.getElementById('SitesInner'),
+            maxWidth  = outer.clientWidth,
+            maxHeight = outer.clientHeight;
+            let scale,
+            width = document.documentElement.clientWidth,
+            isMax = width >= maxWidth;
+
+            scale = width/maxWidth;
+            outer.style.transform = isMax?'':'scale(' + scale + ')';
+        }     
         var xhttp = new XMLHttpRequest();
         xhttp.onreadystatechange = function () {
             if (this.readyState == 4 && this.status == 200) {
@@ -48,17 +59,6 @@
                 document.head.appendChild(script);
                 document.getElementById("cover").style.opacity = '0'
                 
-                function resize(){
-                    let outer = document.getElementById('SitesInner'),
-                    maxWidth  = outer.clientWidth,
-                    maxHeight = outer.clientHeight;
-                    let scale,
-                    width = window.innerWidth,
-                    isMax = width >= maxWidth;
-
-                    scale = width/maxWidth;
-                    outer.style.transform = isMax?'':'scale(' + scale + ')';
-                }
                 window.addEventListener("resize", resize);
                 window.onresize = resize;
                 resize();
