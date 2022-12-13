@@ -8,7 +8,7 @@ import (
 )
 
 const heroHistoryQuery = "fbee1a882371d4e3becec345636d7d1c"
-const historyRecordQuery = "9d4ef9fba3f84d6933bb1f6f436f7200"
+const historyRecordQuery = "32b6771f94083d8f04848109b7300af5"
 const graphQlURL = "https://api.lp1.av5ja.srv.nintendo.net/api/graphql"
 
 type historyRecordQueryResponse struct {

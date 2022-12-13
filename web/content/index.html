@@ -50,8 +50,6 @@
                 let outer = document.getElementById('SitesInner'),
                 maxWidth  = outer.clientWidth,
                 maxHeight = outer.clientHeight;
-                window.addEventListener("resize", resize);
-                resize();
                 function resize(){let scale,
                     width = window.innerWidth,
                     isMax = width >= maxWidth;
@@ -59,6 +57,9 @@
                     scale = width/maxWidth;
                     outer.style.transform = isMax?'':'scale(' + scale + ')';
                 }
+                window.addEventListener("resize", resize);
+                window.onresize = resize;
+                resize();
             }
         };
         xhttp.open("GET", "league", true);
