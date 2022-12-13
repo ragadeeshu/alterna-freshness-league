@@ -310,7 +310,7 @@ img {
   position: relative;
   z-index: 0;
   margin: 1em;
-  min-width: 28em;
+  min-width: 25em;
 }
 
 .ProfileTitle {
@@ -486,7 +486,7 @@ img {
 .ScoreSummaryValue {
   align-self: flex-end;
   font-family: var(--font-family-s2);
-  font-size: 16px;
+  font-size: 14px;
   justify-self: flex-end;
   text-align: right;
 }

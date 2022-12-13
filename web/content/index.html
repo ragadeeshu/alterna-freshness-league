@@ -47,10 +47,12 @@
                 script.src = "https://buttons.github.io/buttons.js";
                 document.head.appendChild(script);
                 document.getElementById("cover").style.opacity = '0'
-                let outer = document.getElementById('SitesInner'),
-                maxWidth  = outer.clientWidth,
-                maxHeight = outer.clientHeight;
-                function resize(){let scale,
+                
+                function resize(){
+                    let outer = document.getElementById('SitesInner'),
+                    maxWidth  = outer.clientWidth,
+                    maxHeight = outer.clientHeight;
+                    let scale,
                     width = window.innerWidth,
                     isMax = width >= maxWidth;
 
