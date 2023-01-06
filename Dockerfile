@@ -15,6 +15,7 @@ RUN go build
 
 ENV CONTESTANTS={}
 ENV PROXY=false
+ENV LANGUAGE=en-US
 EXPOSE 8080
 
-ENTRYPOINT ./alterna-freshness-league --proxy=${PROXY} --league=${CONTESTANTS}
+ENTRYPOINT ./alterna-freshness-league --proxy=${PROXY} --league=${CONTESTANTS} --language=${LANGUAGE}

@@ -3,6 +3,7 @@ package datahandling
 import (
 	"bytes"
 	"encoding/json"
+	"flag"
 	"fmt"
 	"net/http"
 )
@@ -42,7 +43,11 @@ type iminkApiResponse struct {
 	Timestamp int    `json:"timestamp"`
 }
 
+var leagueLanguage string
+
 func splatnetLogin(contestant *Contestant, nsoAppVersion string, webveiwVersion string, client *http.Client) (*splatnetAccount, error) {
+	leagueLanguage = flag.Lookup("language").Value.(flag.Getter).Get().(string)
+
 	nintendoTokenResponse, err := getNintendoAccessToken(contestant, client)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get nintendoTokenResponse: %w", err)
@@ -80,14 +85,14 @@ func splatnetLogin(contestant *Contestant, nsoAppVersion string, webveiwVersion 
 
 	graphQlHeader := map[string]string{
 		"Authorization":    fmt.Sprintf("Bearer %s", bulletTokenResponse.BulletToken),
-		"Accept-Language":  nintendoUserInfo.Language,
+		"Accept-Language":  leagueLanguage,
 		"User-Agent":       "Mozilla/5.0 (Linux; Android 11; Pixel 5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/94.0.4606.61 Mobile Safari/537.36",
 		"X-Web-View-Ver":   webveiwVersion,
 		"Content-Type":     "application/json",
 		"Accept":           "*/*",
 		"Origin":           "https://api.lp1.av5ja.srv.nintendo.net",
 		"X-Requested-With": "com.nintendo.znca",
-		"Referer":          fmt.Sprintf("https://api.lp1.av5ja.srv.nintendo.net/?lang=%s&na_country=%s&na_lang=%s", nintendoUserInfo.Language, nintendoUserInfo.Country, nintendoUserInfo.Language),
+		"Referer":          fmt.Sprintf("https://api.lp1.av5ja.srv.nintendo.net/?lang=%s&na_country=%s&na_lang=%s", leagueLanguage, nintendoUserInfo.Country, leagueLanguage),
 	}
 
 	return &splatnetAccount{
@@ -105,7 +110,7 @@ func getBulletToken(nintendoUserInfo *nintendoApiUserInfoResponse, webveiwVersio
 		return nil, fmt.Errorf("failed to create request: %w", err)
 	}
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Accept-Language", nintendoUserInfo.Language)
+	req.Header.Set("Accept-Language", leagueLanguage)
 	req.Header.Set("User-Agent", "Mozilla/5.0 (Linux; Android 11; Pixel 5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/94.0.4606.61 Mobile Safari/537.36")
 	req.Header.Set("X-Web-View-Ver", webveiwVersion)
 	req.Header.Set("X-NACOUNTRY", nintendoUserInfo.Country)
@@ -170,7 +175,7 @@ func getSplatoonAccessToken(iminkResponse1 *iminkApiResponse, nintendoUserInfo *
 	body := map[string]interface{}{
 		"parameter": map[string]interface{}{
 			"f":          iminkResponse1.Ftoken,
-			"language":   nintendoUserInfo.Language,
+			"language":   leagueLanguage,
 			"naBirthday": nintendoUserInfo.Birthday,
 			"naCountry":  nintendoUserInfo.Country,
 			"naIdToken":  nintendoTokenResponse.IdToken,

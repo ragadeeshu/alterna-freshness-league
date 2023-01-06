@@ -49,4 +49,6 @@ Or, to run a proxy:
         Port to bind to (default "8080")
   -proxy
         Start in proxy mode
+  -language
+        Language to use for the league (default "en-US")
  ```
