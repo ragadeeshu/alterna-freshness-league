@@ -15,6 +15,7 @@ func main() {
 	port := flag.String("port", "8080", "Port to bind to")
 	proxy := flag.Bool("proxy", false, "Start in proxy mode")
 	flag.Var(&league, "league", "Contestants json string, tries to read 'contestants.json' file if not set")
+	flag.String("language", "en-US", "Language to use for the league")
 	flag.Parse()
 
 	if cmp.Equal(league, datahandling.League{}) {
