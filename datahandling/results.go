@@ -220,15 +220,16 @@ func score(playerResults *[]PlayerResult, worldView *World) {
 		(*playerResults)[i].Freshness = freshness[(*playerResults)[i].TotalScore/freshnessThreshold]
 		(*playerResults)[i].BestSite = 1
 		(*playerResults)[i].WorstSite = 6
-		bestSiteRank := len(*playerResults) + 1
-		worstSiteRank := 1
+		bestSiteAvgScore := 0.0
+		worstSiteAvgScore := 0.0
 		for siteNumber, site := range (*playerResults)[i].ResultBySite {
-			if site.Rank < bestSiteRank || site.Rank == bestSiteRank && siteNumber < (*playerResults)[i].BestSite {
-				bestSiteRank = site.Rank
+			avgScore := float64(site.Score) / float64(len(site.ResultByStage))
+			if avgScore > bestSiteAvgScore {
+				bestSiteAvgScore = avgScore
 				(*playerResults)[i].BestSite = siteNumber
 			}
-			if site.Rank > worstSiteRank || site.Rank == worstSiteRank && siteNumber > (*playerResults)[i].WorstSite {
-				worstSiteRank = site.Rank
+			if avgScore <= worstSiteAvgScore {
+				worstSiteAvgScore = avgScore
 				(*playerResults)[i].WorstSite = siteNumber
 			}
 		}
