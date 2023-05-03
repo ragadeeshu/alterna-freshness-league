@@ -1,6 +1,7 @@
 package datahandling
 
 import (
+	"math"
 	"sort"
 	"strings"
 )
@@ -218,10 +219,8 @@ func score(playerResults *[]PlayerResult, worldView *World) {
 	for i := range *playerResults {
 		(*playerResults)[i].Rank = i + 1
 		(*playerResults)[i].Freshness = freshness[(*playerResults)[i].TotalScore/freshnessThreshold]
-		(*playerResults)[i].BestSite = 1
-		(*playerResults)[i].WorstSite = 6
-		bestSiteAvgScore := 0.0
-		worstSiteAvgScore := 0.0
+		bestSiteAvgScore := -1.0
+		worstSiteAvgScore := math.MaxFloat64
 		for siteNumber, site := range (*playerResults)[i].ResultBySite {
 			avgScore := float64(site.Score) / float64(len(site.ResultByStage))
 			if avgScore > bestSiteAvgScore {
