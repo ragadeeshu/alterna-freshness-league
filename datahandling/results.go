@@ -224,7 +224,7 @@ func score(playerResults *[]PlayerResult, worldView *World) {
 		bestSiteAvgScore := -1.0
 		worstSiteAvgScore := math.MaxFloat64
 		for siteNumber, site := range (*playerResults)[i].ResultBySite {
-			avgScore := float64(site.Score) / float64(len(worldView.Sites[siteNumber].Stages))
+			avgScore := float64(site.Score) / float64(len(worldView.Sites[siteNumber-1].Stages))
 			if avgScore > bestSiteAvgScore {
 				bestSiteAvgScore = avgScore
 				(*playerResults)[i].BestSite = siteNumber
