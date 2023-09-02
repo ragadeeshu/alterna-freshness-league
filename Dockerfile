@@ -1,5 +1,4 @@
-FROM golang:1.17-alpine
-RUN apk add --no-cache jq
+FROM golang:1.18-alpine
 WORKDIR /app
 
 COPY go.mod ./
