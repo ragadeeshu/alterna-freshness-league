@@ -7,8 +7,8 @@ import (
 	"net/http"
 )
 
-const heroHistoryQuery = "fbee1a882371d4e3becec345636d7d1c"
-const historyRecordQuery = "32b6771f94083d8f04848109b7300af5"
+const heroHistoryQuery = "71019ce4389463d9e2a71632e111eb453ca528f4f794aefd861dff23d9c18147"
+const historyRecordQuery = "0a62c0152f27c4218cf6c87523377521c2cff76a4ef0373f2da3300079bf0388"
 const graphQlURL = "https://api.lp1.av5ja.srv.nintendo.net/api/graphql"
 
 type historyRecordQueryResponse struct {

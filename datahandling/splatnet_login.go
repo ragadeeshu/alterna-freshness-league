@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strconv"
 )
 
 type bulletApiTokenResponse struct {
@@ -19,6 +20,7 @@ type splatoonApiTokenResponse struct {
 		User struct {
 			ImageUri string `json:"imageUri"`
 			Name     string `json:"name"`
+			Id       int    `json:"id"`
 		} `json:"user"`
 		WebApiServerCredential struct {
 			AccessToken string `json:"accessToken"`
@@ -35,6 +37,7 @@ type nintendoApiUserInfoResponse struct {
 	Language string `json:"language"`
 	Country  string `json:"country"`
 	Birthday string `json:"birthday"`
+	UserId   string `json:"id"`
 }
 type iminkApiResponse struct {
 	Ftoken    string `json:"f"`
@@ -53,7 +56,7 @@ func splatnetLogin(contestant *Contestant, nsoAppVersion string, webveiwVersion 
 		return nil, fmt.Errorf("failed to get nintendoUserInfo: %w", err)
 	}
 
-	iminkResponse1, err := callImink(nintendoTokenResponse.IdToken, 1, client)
+	iminkResponse1, err := callImink(nintendoTokenResponse.IdToken, nintendoUserInfo.UserId, "", 1, client)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get iminkResponse1: %w", err)
 	}
@@ -63,7 +66,7 @@ func splatnetLogin(contestant *Contestant, nsoAppVersion string, webveiwVersion 
 		return nil, fmt.Errorf("failed to get splatoonTokenResponse: %w", err)
 	}
 
-	iminkResponse2, err := callImink(splatoonTokenResponse.Result.WebApiServerCredential.AccessToken, 2, client)
+	iminkResponse2, err := callImink(splatoonTokenResponse.Result.WebApiServerCredential.AccessToken, nintendoUserInfo.UserId, strconv.Itoa(splatoonTokenResponse.Result.User.Id), 2, client)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get iminkResponse2: %w", err)
 	}
@@ -266,10 +269,14 @@ func getNintendoAccessToken(contestant *Contestant, client *http.Client) (*ninte
 	return &nintendoTokenResponse, nil
 }
 
-func callImink(idToken string, hashMethod int, client *http.Client) (*iminkApiResponse, error) {
+func callImink(idToken, userId, coralUserId string, hashMethod int, client *http.Client) (*iminkApiResponse, error) {
 	body := map[string]interface{}{
 		"token":       idToken,
 		"hash_method": hashMethod,
+		"na_id":       userId,
+	}
+	if coralUserId != "" {
+		body["coral_user_id"] = coralUserId
 	}
 	jsonBody, err := json.Marshal(body)
 	if err != nil {
@@ -281,7 +288,7 @@ func callImink(idToken string, hashMethod int, client *http.Client) (*iminkApiRe
 		return nil, fmt.Errorf("failed to create request: %w", err)
 	}
 	req.Header.Set("Content-Type", "application/json; charset=utf-8")
-	req.Header.Set("User-Agent", "AlternaFreshnessLeague/v1.0.1")
+	req.Header.Set("User-Agent", "AlternaFreshnessLeague/v1.3.0")
 	response, err := client.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("failed to execute request: %w", err)
@@ -296,7 +303,7 @@ func callImink(idToken string, hashMethod int, client *http.Client) (*iminkApiRe
 }
 
 func getNsoAppVersion(client *http.Client) (string, error) {
-	fallback := "2.4.0"
+	fallback := "2.7.0"
 	requestURL := "https://raw.githubusercontent.com/nintendoapis/nintendo-app-versions/main/data/coral-google-play.json"
 	req, err := http.NewRequest(http.MethodGet, requestURL, nil)
 	if err != nil {
@@ -318,7 +325,7 @@ func getNsoAppVersion(client *http.Client) (string, error) {
 }
 
 func getWebViewVersion(client *http.Client) (string, error) {
-	fallback := "2.0.0-1b57b7ac"
+	fallback := "4.0.0-dae4328c"
 	requestURL := "https://raw.githubusercontent.com/nintendoapis/nintendo-app-versions/main/data/splatnet3-app.json"
 	req, err := http.NewRequest(http.MethodGet, requestURL, nil)
 	if err != nil {
