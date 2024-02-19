@@ -21,7 +21,7 @@ To use first create a `contestants.json` with the following structure:
     ]
 }
 ```
-
+Which contains all of your contestants. You need eiter their session tokens, or you need them to run a proxy (see below). How to get a session token? If you use s3s you can grab it from your `config.txt`.
 
 To run a server:
 
