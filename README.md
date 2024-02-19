@@ -21,10 +21,9 @@ To use first create a `contestants.json` with the following structure:
     ]
 }
 ```
-Which contains all of your contestants. You need eiter their session tokens, or you need them to run a proxy (see below). How to get a session token? If you use s3s you can grab it from your `config.txt`.
+Which contains all of your contestants. You need either their session tokens, or you need them to run a proxy (see below). How to get a session token? If you use s3s you can grab it from your `config.txt`.
 
 To run a server:
-
  ```
  docker run -d --restart=always --env CONTESTANTS=`jq -c . contestants.json` -p <port>:8080 ghcr.io/ragadeeshu/alterna-freshness-league:latest
  ```
@@ -50,3 +49,6 @@ Or, to run a proxy:
   -proxy
         Start in proxy mode
  ```
+
+What does it look like? Something like this:
+![web example](alterna%20freshness%20league.png)
