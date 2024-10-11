@@ -303,45 +303,47 @@ func callImink(idToken, userId, coralUserId string, hashMethod int, client *http
 }
 
 func getNsoAppVersion(client *http.Client) (string, error) {
-	fallback := "2.7.0"
-	requestURL := "https://raw.githubusercontent.com/nintendoapis/nintendo-app-versions/main/data/coral-google-play.json"
-	req, err := http.NewRequest(http.MethodGet, requestURL, nil)
-	if err != nil {
-		return fallback, fmt.Errorf("failed to create request: %w", err)
-	}
-	response, err := client.Do(req)
-	if err != nil {
-		return fallback, fmt.Errorf("failed to execute request: %w", err)
-	}
-	defer response.Body.Close()
-	var versionResponse struct {
-		Version string `json:"version"`
-	}
-	err = json.NewDecoder(response.Body).Decode(&versionResponse)
-	if err != nil {
-		return fallback, fmt.Errorf("failed to decode json from response: %w", err)
-	}
-	return versionResponse.Version, nil
+	fallback := "2.10.1"
+	//requestURL := "https://raw.githubusercontent.com/nintendoapis/nintendo-app-versions/main/data/coral-google-play.json"
+	//req, err := http.NewRequest(http.MethodGet, requestURL, nil)
+	//if err != nil {
+	//	return fallback, fmt.Errorf("failed to create request: %w", err)
+	//}
+	//response, err := client.Do(req)
+	//if err != nil {
+	//	return fallback, fmt.Errorf("failed to execute request: %w", err)
+	//}
+	//defer response.Body.Close()
+	//var versionResponse struct {
+	//	Version string `json:"version"`
+	//}
+	//err = json.NewDecoder(response.Body).Decode(&versionResponse)
+	//if err != nil {
+	//	return fallback, fmt.Errorf("failed to decode json from response: %w", err)
+	//}
+	//return versionResponse.Version, nil
+	return fallback, nil
 }
 
 func getWebViewVersion(client *http.Client) (string, error) {
-	fallback := "4.0.0-dae4328c"
-	requestURL := "https://raw.githubusercontent.com/nintendoapis/nintendo-app-versions/main/data/splatnet3-app.json"
-	req, err := http.NewRequest(http.MethodGet, requestURL, nil)
-	if err != nil {
-		return fallback, fmt.Errorf("failed to create request: %w", err)
-	}
-	response, err := client.Do(req)
-	if err != nil {
-		return fallback, fmt.Errorf("failed to execute request: %w", err)
-	}
-	defer response.Body.Close()
-	var versionResponse struct {
-		Version string `json:"web_app_ver"`
-	}
-	err = json.NewDecoder(response.Body).Decode(&versionResponse)
-	if err != nil {
-		return fallback, fmt.Errorf("failed to decode json from response: %w", err)
-	}
-	return versionResponse.Version, nil
+	fallback := "6.0.0-30a1464a"
+	//requestURL := "https://raw.githubusercontent.com/nintendoapis/nintendo-app-versions/main/data/splatnet3-app.json"
+	//req, err := http.NewRequest(http.MethodGet, requestURL, nil)
+	//if err != nil {
+	//	return fallback, fmt.Errorf("failed to create request: %w", err)
+	//}
+	//response, err := client.Do(req)
+	//if err != nil {
+	//	return fallback, fmt.Errorf("failed to execute request: %w", err)
+	//}
+	//defer response.Body.Close()
+	//var versionResponse struct {
+	//	Version string `json:"web_app_ver"`
+	//}
+	//err = json.NewDecoder(response.Body).Decode(&versionResponse)
+	//if err != nil {
+	//	return fallback, fmt.Errorf("failed to decode json from response: %w", err)
+	//}
+	//return versionResponse.Version, nil
+	return fallback, nil
 }
