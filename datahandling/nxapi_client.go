@@ -70,7 +70,7 @@ func fetchSplatnetData(sessionToken string, account *nsoAccount, sidecarURL stri
 	}, nil
 }
 
-func getJSON(sidecarURL, path, token string, client *http.Client, out interface{}) error {
+func getJSON(sidecarURL, path, token string, client *http.Client, out any) error {
 	endpoint, err := endpointURL(sidecarURL, path, token)
 	if err != nil {
 		return err
