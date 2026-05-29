@@ -1,0 +1,26 @@
+services:
+  nxapi:
+    build:
+      context: .
+      dockerfile: Dockerfile.nxapi
+    environment:
+      NXAPI_USER_AGENT: alterna-freshness-league/2.0.0 (+https://github.com/ragadeeshu/alterna-freshness-league)
+    volumes:
+      - nxapi-data:/data
+    ports:
+      - "2727:2727"
+
+  freshness-league:
+    build: .
+    environment:
+      SIDECAR_URL: http://nxapi:2727
+      PROXY: ${PROXY:-false}
+    volumes:
+      - ./contestants.json:/app/contestants.json:ro
+    depends_on:
+      - nxapi
+    ports:
+      - "8080:8080"
+
+volumes:
+  nxapi-data:

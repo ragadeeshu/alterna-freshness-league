@@ -1,0 +1,17 @@
+FROM golang:1.18-alpine AS bridge-build
+WORKDIR /src
+COPY go.mod go.sum ./
+RUN go mod download
+COPY nxapi-bridge ./nxapi-bridge
+RUN go build -o /out/nxapi-bridge ./nxapi-bridge
+
+FROM node:20-alpine
+RUN npm install --global nxapi@next
+COPY --from=bridge-build /out/nxapi-bridge /usr/local/bin/nxapi-bridge
+
+ENV NXAPI_DATA_PATH=/data
+VOLUME ["/data"]
+
+EXPOSE 2727
+
+ENTRYPOINT ["/usr/local/bin/nxapi-bridge"]

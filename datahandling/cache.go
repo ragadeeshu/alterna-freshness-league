@@ -11,18 +11,12 @@ import (
 )
 
 type LeagueDataCache struct {
-	client               *http.Client
-	versionCache         *cache.Cache
-	splatnetAccountCache *cache.Cache
-	splatnetDataCache    *cache.Cache
+	client            *http.Client
+	nsoAccountCache   *cache.Cache
+	splatnetDataCache *cache.Cache
+	sidecarURL        string
 }
 
-type splatnetAccount struct {
-	nsoName       string
-	nsoImage      string
-	accessToken   string
-	graphQlHeader map[string]string
-}
 type League struct {
 	Contestants []Contestant `json:"contestants"`
 	Proxies     []string     `json:"proxies"`
@@ -47,15 +41,15 @@ type LeagueResult struct {
 	PlayerResults []PlayerResult
 }
 
-func NewCache() *LeagueDataCache {
+func NewCache(sidecarURL string) *LeagueDataCache {
 	var client = &http.Client{
-		Timeout: time.Second * 30,
+		Timeout: time.Second * 180,
 	}
 	return &LeagueDataCache{
-		client:               client,
-		versionCache:         cache.New(24*time.Hour, 1*time.Hour),
-		splatnetAccountCache: cache.New(109*time.Minute, 10*time.Minute),
-		splatnetDataCache:    cache.New(1*time.Minute, 30*time.Second),
+		client:            client,
+		nsoAccountCache:   cache.New(24*time.Hour, 1*time.Hour),
+		splatnetDataCache: cache.New(1*time.Minute, 30*time.Second),
+		sidecarURL:        sidecarURL,
 	}
 }
 
@@ -68,21 +62,12 @@ func (c *LeagueDataCache) GetLeagueData(league League) (LeagueResult, error) {
 }
 
 func (c *LeagueDataCache) GetSplatnetDatas(league League) ([]*SplatnetData, error) {
-	webViewVersionChannel := make(chan string)
-	nsoAppVersionChannel := make(chan string)
-
-	go getVersionAsync(c.versionCache, "webViewVersion", func() (string, error) { return getWebViewVersion(c.client) }, webViewVersionChannel)
-	go getVersionAsync(c.versionCache, "nsoAppVersion", func() (string, error) { return getNsoAppVersion(c.client) }, nsoAppVersionChannel)
-
-	webViewVersion := <-webViewVersionChannel
-	nsoAppVersion := <-nsoAppVersionChannel
-
 	splatnetDatas := []*SplatnetData{}
 	splatnetDataChannel := make(chan *SplatnetData)
 	var wg sync.WaitGroup
 	for _, contestant := range league.Contestants {
 		wg.Add(1)
-		go getSplatnetDataAsync(contestant, c.splatnetDataCache, c.splatnetAccountCache, nsoAppVersion, webViewVersion, splatnetDataChannel, &wg, c.client)
+		go getSplatnetDataAsync(contestant, c.splatnetDataCache, c.nsoAccountCache, c.sidecarURL, splatnetDataChannel, &wg, c.client)
 	}
 	for _, proxy := range league.Proxies {
 		wg.Add(1)
@@ -98,56 +83,39 @@ func (c *LeagueDataCache) GetSplatnetDatas(league League) ([]*SplatnetData, erro
 	return splatnetDatas, nil
 }
 
-func getVersionAsync(versionCache *cache.Cache, versionType string, fetcher func() (string, error), versionChannel chan string) {
-	if cacheValue, found := versionCache.Get(versionType); found {
-		versionChannel <- cacheValue.(string)
-		return
-	}
-	version, err := fetcher()
-	if err != nil {
-		fmt.Println(fmt.Errorf("failed to get %s: %w", versionType, err))
-	}
-	err = versionCache.Add(versionType, version, cache.DefaultExpiration)
-	if err != nil {
-		fmt.Println(fmt.Errorf("failed to cache %s: %w", versionType, err))
-	}
-	versionChannel <- version
-}
-
 func getSplatnetDataAsync(
 	contestant Contestant,
 	splatnetDataCache *cache.Cache,
-	splatnetAccountCache *cache.Cache,
-	nsoAppVersion string,
-	webViewVersion string,
+	nsoAccountCache *cache.Cache,
+	sidecarURL string,
 	splatnetDataChannel chan *SplatnetData,
 	wg *sync.WaitGroup,
 	client *http.Client,
 ) {
 	defer wg.Done()
-	var err error
-	var data *SplatnetData
-	if cacheValue, found := splatnetDataCache.Get(contestant.Name); found {
-		data = cacheValue.(*SplatnetData)
-	} else {
-		var account *splatnetAccount
-		if cacheValue, found := splatnetAccountCache.Get(contestant.Name); found {
-			account = cacheValue.(*splatnetAccount)
-		} else {
-			account, err = splatnetLogin(&contestant, nsoAppVersion, webViewVersion, client)
-			if err != nil {
-				fmt.Println(fmt.Errorf("failed to log in contestant %s: %w", contestant.Name, err))
-				return
-			}
-			splatnetAccountCache.Add(contestant.Name, account, cache.DefaultExpiration)
-		}
-		data, err = getSplatnetData(account, client)
+
+	if cached, found := splatnetDataCache.Get(contestant.Name); found {
+		splatnetDataChannel <- cached.(*SplatnetData)
+		return
+	}
+
+	account, ok := nsoAccountCache.Get(contestant.Name)
+	if !ok {
+		fetched, err := fetchNsoAccount(&contestant, sidecarURL, client)
 		if err != nil {
-			fmt.Println(fmt.Errorf("failed to get data for contestant %s: %w", contestant.Name, err))
+			fmt.Println(fmt.Errorf("failed to fetch NSO account for contestant %s: %w", contestant.Name, err))
 			return
 		}
-		splatnetDataCache.Add(contestant.Name, data, cache.DefaultExpiration)
+		nsoAccountCache.Add(contestant.Name, fetched, cache.DefaultExpiration)
+		account = fetched
 	}
+
+	data, err := fetchSplatnetData(contestant.SessionToken, account.(*nsoAccount), sidecarURL, client)
+	if err != nil {
+		fmt.Println(fmt.Errorf("failed to get SplatNet data for contestant %s: %w", contestant.Name, err))
+		return
+	}
+	splatnetDataCache.Add(contestant.Name, data, cache.DefaultExpiration)
 	splatnetDataChannel <- data
 }
 
