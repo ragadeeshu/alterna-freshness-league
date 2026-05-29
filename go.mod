@@ -1,6 +1,6 @@
 module github.com/ragadeeshu/alterna-freshness-league
 
-go 1.19
+go 1.26
 
 require (
 	github.com/google/go-cmp v0.5.9

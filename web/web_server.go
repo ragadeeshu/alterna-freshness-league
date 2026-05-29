@@ -3,10 +3,10 @@ package web
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"math"
 	"net/http"
+	"os"
 	"text/template"
 
 	"github.com/ragadeeshu/alterna-freshness-league/datahandling"
@@ -80,7 +80,7 @@ func StartWebServer(cache *datahandling.LeagueDataCache, league datahandling.Lea
 				fmt.Println(err)
 			}
 		} else {
-			body, _ := ioutil.ReadFile("./web/content/index.html")
+			body, _ := os.ReadFile("./web/content/index.html")
 			fmt.Fprintf(w, "%s", body)
 		}
 	}

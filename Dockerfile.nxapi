@@ -1,11 +1,11 @@
-FROM golang:1.18-alpine AS bridge-build
+FROM golang:1.26-alpine AS bridge-build
 WORKDIR /src
 COPY go.mod go.sum ./
 RUN go mod download
 COPY nxapi-bridge ./nxapi-bridge
 RUN go build -o /out/nxapi-bridge ./nxapi-bridge
 
-FROM node:20-alpine
+FROM node:24-alpine
 RUN npm install --global nxapi@next
 COPY --from=bridge-build /out/nxapi-bridge /usr/local/bin/nxapi-bridge
 

@@ -6,7 +6,7 @@
 # Config (PORT, PROXY, CONTESTANTS, SIDECAR_URL) is read straight from env by
 # main.go, so the ENTRYPOINT can use exec form for clean signal forwarding.
 
-FROM golang:1.18-alpine AS build
+FROM golang:1.26-alpine AS build
 WORKDIR /src
 COPY go.mod go.sum ./
 RUN go mod download
@@ -15,10 +15,8 @@ COPY web ./web
 COPY main.go ./
 RUN go build -o /out/alterna-freshness-league .
 
-FROM alpine:3.19
+FROM alpine:3.23
 COPY --from=build /out/alterna-freshness-league /usr/local/bin/alterna-freshness-league
-# Templates and static assets that the web handlers read via relative path
-# (./web/content/league.gohtml etc.) at request time.
 COPY web/content /app/web/content
 WORKDIR /app
 
