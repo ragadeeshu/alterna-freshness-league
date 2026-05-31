@@ -3,8 +3,8 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.nxapi
-    environment:
-      NXAPI_USER_AGENT: alterna-freshness-league/2.0.0 (+https://github.com/ragadeeshu/alterna-freshness-league)
+      args:
+        VERSION: ${VERSION:-dev}
     volumes:
       - nxapi-data:/data
     ports:

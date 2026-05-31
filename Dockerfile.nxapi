@@ -1,9 +1,10 @@
 FROM golang:1.26-alpine AS bridge-build
+ARG VERSION=dev
 WORKDIR /src
 COPY go.mod go.sum ./
 RUN go mod download
 COPY nxapi-bridge ./nxapi-bridge
-RUN go build -o /out/nxapi-bridge ./nxapi-bridge
+RUN go build -ldflags "-X main.version=${VERSION}" -o /out/nxapi-bridge ./nxapi-bridge
 
 FROM node:24-alpine
 RUN npm install --global nxapi@next

@@ -30,6 +30,16 @@ const (
 	execTimeout = 5 * time.Minute // backstop in case nxapi hangs
 )
 
+// version is the app version baked in at build time via
+// -ldflags "-X main.version=...". It defaults to "dev" for local builds and
+// is set from the git tag by the release workflow. We surface it to Nintendo's
+// API as the nxapi user-agent.
+var version = "dev"
+
+func userAgent() string {
+	return fmt.Sprintf("alterna-freshness-league/%s (+https://github.com/ragadeeshu/alterna-freshness-league)", version)
+}
+
 type userResponse struct {
 	NsoName  string `json:"nsoName"`
 	NsoImage string `json:"nsoImage"`
@@ -65,9 +75,15 @@ var (
 )
 
 func main() {
+	// nxapi reads NXAPI_USER_AGENT to identify us to Nintendo's API. Derive it
+	// from the embedded version unless an operator has set it explicitly.
+	if _, ok := os.LookupEnv("NXAPI_USER_AGENT"); !ok {
+		os.Setenv("NXAPI_USER_AGENT", userAgent())
+	}
+
 	http.HandleFunc("/api/user", handleUser)
 	http.HandleFunc("/api/splatnet3/records", handleSplatnet3Records)
-	log.Printf("nxapi-bridge listening on %s", listenAddr)
+	log.Printf("nxapi-bridge %s listening on %s", version, listenAddr)
 	log.Fatal(http.ListenAndServe(listenAddr, nil))
 }
 
