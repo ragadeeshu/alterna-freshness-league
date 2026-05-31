@@ -6,7 +6,6 @@ import (
 	"os"
 	"strconv"
 
-	"github.com/google/go-cmp/cmp"
 	"github.com/ragadeeshu/alterna-freshness-league/datahandling"
 	"github.com/ragadeeshu/alterna-freshness-league/web"
 )
@@ -19,7 +18,7 @@ func main() {
 	flag.Var(&league, "league", "Contestants json string; falls back to CONTESTANTS env var, then 'contestants.json'")
 	flag.Parse()
 
-	if cmp.Equal(league, datahandling.League{}) {
+	if len(league.Contestants) == 0 && len(league.Proxies) == 0 {
 		if raw := os.Getenv("CONTESTANTS"); raw != "" && raw != "{}" {
 			if err := json.Unmarshal([]byte(raw), &league); err != nil {
 				panic(err)

@@ -74,7 +74,7 @@ func calculateResults(splatnetDatas []*SplatnetData) LeagueResult {
 	score(playerResults, &worldView)
 	return LeagueResult{
 		World:         worldView,
-		PlayerResults: *playerResults,
+		PlayerResults: playerResults,
 	}
 }
 
@@ -119,7 +119,7 @@ func gatherWorldView(splatnetDatas []*SplatnetData) (world World) {
 	return
 }
 
-func gatherPlayerTimes(splatnetDatas []*SplatnetData) *[]PlayerResult {
+func gatherPlayerTimes(splatnetDatas []*SplatnetData) []PlayerResult {
 	playerResults := []PlayerResult{}
 	for _, playerData := range splatnetDatas {
 		badgeURLs := []string{}
@@ -160,11 +160,11 @@ func gatherPlayerTimes(splatnetDatas []*SplatnetData) *[]PlayerResult {
 		}
 		playerResults = append(playerResults, playerResult)
 	}
-	return &playerResults
+	return playerResults
 }
 
-func score(playerResults *[]PlayerResult, worldView *World) {
-	maxScore := len(*playerResults)
+func score(playerResults []PlayerResult, worldView *World) {
+	maxScore := len(playerResults)
 	numStages := 0
 	for _, site := range worldView.Sites {
 		// score stages
@@ -172,7 +172,7 @@ func score(playerResults *[]PlayerResult, worldView *World) {
 			numStages++
 			var stageResultPointers []*StageResult
 			// find stage result, if any
-			for _, playerResult := range *playerResults {
+			for _, playerResult := range playerResults {
 				if siteResult, found := playerResult.ResultBySite[site.SiteNumber]; found {
 					if stageResult, found := siteResult.ResultByStage[stage.StageNumber]; found {
 						stageResultPointers = append(stageResultPointers, stageResult)
@@ -189,7 +189,7 @@ func score(playerResults *[]PlayerResult, worldView *World) {
 		// score site
 		var siteResultPointers []*SiteResult
 		// find site result, if any
-		for _, playerResult := range *playerResults {
+		for _, playerResult := range playerResults {
 			if siteResult, found := playerResult.ResultBySite[site.SiteNumber]; found {
 				siteResultPointers = append(siteResultPointers, siteResult)
 			}
@@ -207,31 +207,31 @@ func score(playerResults *[]PlayerResult, worldView *World) {
 		}
 	}
 	// total score
-	for i := range *playerResults {
+	for i := range playerResults {
 		for _, site := range worldView.Sites {
-			if siteResult, found := (*playerResults)[i].ResultBySite[site.SiteNumber]; found {
-				(*playerResults)[i].TotalScore += siteResult.Score
+			if siteResult, found := playerResults[i].ResultBySite[site.SiteNumber]; found {
+				playerResults[i].TotalScore += siteResult.Score
 			}
 		}
 	}
-	sort.Slice(*playerResults, func(i, j int) bool { return (*playerResults)[i].TotalScore > (*playerResults)[j].TotalScore })
+	sort.Slice(playerResults, func(i, j int) bool { return playerResults[i].TotalScore > playerResults[j].TotalScore })
 	freshnessThreshold := numStages * maxScore / (len(freshness) - 1)
-	for i := range *playerResults {
-		(*playerResults)[i].Rank = i + 1
-		(*playerResults)[i].Freshness = freshness[(*playerResults)[i].TotalScore/freshnessThreshold]
-		(*playerResults)[i].BestSite = 1
-		(*playerResults)[i].WorstSite = 6
+	for i := range playerResults {
+		playerResults[i].Rank = i + 1
+		playerResults[i].Freshness = freshness[playerResults[i].TotalScore/freshnessThreshold]
+		playerResults[i].BestSite = 1
+		playerResults[i].WorstSite = 6
 		bestSiteAvgScore := -1.0
 		worstSiteAvgScore := math.MaxFloat64
-		for siteNumber, site := range (*playerResults)[i].ResultBySite {
+		for siteNumber, site := range playerResults[i].ResultBySite {
 			avgScore := float64(site.Score) / float64(len(worldView.Sites[siteNumber-1].Stages))
 			if avgScore > bestSiteAvgScore {
 				bestSiteAvgScore = avgScore
-				(*playerResults)[i].BestSite = siteNumber
+				playerResults[i].BestSite = siteNumber
 			}
 			if avgScore <= worstSiteAvgScore {
 				worstSiteAvgScore = avgScore
-				(*playerResults)[i].WorstSite = siteNumber
+				playerResults[i].WorstSite = siteNumber
 			}
 		}
 	}

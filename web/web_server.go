@@ -12,6 +12,52 @@ import (
 	"github.com/ragadeeshu/alterna-freshness-league/datahandling"
 )
 
+var funcMap = template.FuncMap{
+	"badgeinc": func(f float64) float64 {
+		return f + 74
+	},
+	"arrayIndex": func(i int) int {
+		return i - 1
+	},
+	"siteWinner": func(results []datahandling.PlayerResult, siteNumber int) string {
+		for _, result := range results {
+			if site, found := result.ResultBySite[siteNumber]; found && site.Rank == 1 {
+				return result.Name
+			}
+		}
+		return "Not found"
+	},
+	"siteScore": func(result datahandling.PlayerResult, siteNumber int) int {
+		if site, found := result.ResultBySite[siteNumber]; found {
+			return site.Score
+		}
+		return 0
+	},
+	"siteRank": func(result datahandling.PlayerResult, siteNumber int) int {
+		if site, found := result.ResultBySite[siteNumber]; found {
+			return site.Rank
+		}
+		return 0
+	},
+	"hasStageResult": func(result datahandling.PlayerResult, siteNumber int, stageNumber int) bool {
+		if site, found := result.ResultBySite[siteNumber]; found {
+			_, found = site.ResultByStage[stageNumber]
+			return found
+		}
+		return false
+	},
+	"percentageFormat": func(f float64) string {
+		return fmt.Sprintf("%.0f%%", f*100)
+	},
+	"formatTime": func(time float64) string {
+		return fmt.Sprintf("%02d:%05.2f", int(time/60), math.Mod(time, 60))
+	},
+}
+
+var leagueTemplate = template.Must(
+	template.New("league.gohtml").Funcs(funcMap).ParseFiles("./web/content/league.gohtml"),
+)
+
 func StartWebServer(cache *datahandling.LeagueDataCache, league datahandling.League, port string) {
 	handler := func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/" && r.URL.Path != "/league" {
@@ -29,54 +75,7 @@ func StartWebServer(cache *datahandling.LeagueDataCache, league datahandling.Lea
 			if err != nil {
 				fmt.Println(err)
 			}
-			funcMap := template.FuncMap{
-				"badgeinc": func(f float64) float64 {
-					return f + 74
-				},
-				"arrayIndex": func(i int) int {
-					return i - 1
-				},
-				"siteWinner": func(results []datahandling.PlayerResult, siteNumber int) string {
-					for _, result := range results {
-						if site, found := result.ResultBySite[siteNumber]; found && site.Rank == 1 {
-							return result.Name
-						}
-					}
-					return "Not found"
-				},
-				"siteScore": func(result datahandling.PlayerResult, siteNumber int) int {
-					if site, found := result.ResultBySite[siteNumber]; found {
-						return site.Score
-					}
-					return 0
-				},
-				"siteRank": func(result datahandling.PlayerResult, siteNumber int) int {
-					if site, found := result.ResultBySite[siteNumber]; found {
-						return site.Rank
-					}
-					return 0
-				},
-				"hasStageResult": func(result datahandling.PlayerResult, siteNumber int, stageNumber int) bool {
-					if site, found := result.ResultBySite[siteNumber]; found {
-						_, found = site.ResultByStage[stageNumber]
-						return found
-					}
-					return false
-				},
-				"percentageFormat": func(f float64) string {
-					return fmt.Sprintf("%.0f%%", f*100)
-				},
-				"formatTime": func(time float64) string {
-					return fmt.Sprintf("%02d:%05.2f", int(time/60), math.Mod(time, 60))
-				},
-			}
-
-			t, err := template.New("league.gohtml").Funcs(funcMap).ParseFiles("./web/content/league.gohtml")
-			if err != nil {
-				fmt.Println(err)
-			}
-			err = t.Execute(w, results)
-			if err != nil {
+			if err := leagueTemplate.Execute(w, results); err != nil {
 				fmt.Println(err)
 			}
 		} else {

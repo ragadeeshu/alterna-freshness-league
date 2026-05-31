@@ -2,7 +2,7 @@ package datahandling
 
 import (
 	"encoding/json"
-	"fmt"
+	"log"
 	"net/http"
 	"sync"
 	"time"
@@ -103,7 +103,7 @@ func getSplatnetDataAsync(
 	if !ok {
 		fetched, err := fetchNsoAccount(&contestant, sidecarURL, client)
 		if err != nil {
-			fmt.Println(fmt.Errorf("failed to fetch NSO account for contestant %s: %w", contestant.Name, err))
+			log.Printf("failed to fetch NSO account for contestant %s: %v", contestant.Name, err)
 			return
 		}
 		nsoAccountCache.Add(contestant.Name, fetched, cache.DefaultExpiration)
@@ -112,7 +112,7 @@ func getSplatnetDataAsync(
 
 	data, err := fetchSplatnetData(contestant.SessionToken, account.(*nsoAccount), sidecarURL, client)
 	if err != nil {
-		fmt.Println(fmt.Errorf("failed to get SplatNet data for contestant %s: %w", contestant.Name, err))
+		log.Printf("failed to get SplatNet data for contestant %s: %v", contestant.Name, err)
 		return
 	}
 	splatnetDataCache.Add(contestant.Name, data, cache.DefaultExpiration)
@@ -128,21 +128,21 @@ func getSplatnetProxyAsync(
 	defer wg.Done()
 	req, err := http.NewRequest("GET", proxy, nil)
 	if err != nil {
-		fmt.Println(fmt.Errorf("failed to create request: %w", err))
+		log.Printf("failed to create request: %v", err)
+		return
 	}
 	response, err := client.Do(req)
 	if err != nil {
-		fmt.Println(fmt.Errorf("failed to get from proxy %s: %w", proxy, err))
+		log.Printf("failed to get from proxy %s: %v", proxy, err)
 		return
 	}
 	var proxyDatas []SplatnetData
 	err = json.NewDecoder(response.Body).Decode(&proxyDatas)
 	if err != nil {
-		fmt.Println(fmt.Errorf("failed to unmarshal data from proxy %s: %w", proxy, err))
+		log.Printf("failed to unmarshal data from proxy %s: %v", proxy, err)
 		return
 	}
 	for _, data := range proxyDatas {
-		splatnetData := data
-		splatnetDataChannel <- &splatnetData
+		splatnetDataChannel <- &data
 	}
 }
