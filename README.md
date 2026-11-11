@@ -51,8 +51,6 @@ The bridge intentionally exposes a tiny surface (the rest of `nxapi` is not reac
 | `GET` | `/api/splatnet3/records?token=<session_token>` | Runs `nxapi splatnet3 dump-records --hero --history` and returns the raw GraphQL payloads as `{heroResult, historyPlayer}` |
 | `GET` | `/api/splatnet3/side-order?token=<session_token>` | Gets a SplatNet 3 bullet token from `nxapi splatnet3 token --json`, then runs SplatNet 3's `HistoryRecordQuery` and Side Order queries itself (nxapi doesn't know the Side Order queries): palettes, results/high score, color chips, field guide, and the run details (chip board, hacks, date) of each palette's fastest run and the high-score run. Run details never change, so the sidecar caches them for up to a year, on disk in the `nxapi-data` volume (`/data/side-order-runs`); a run is re-fetched a week before the signed image links inside it expire. Returns `{historyPlayer, sideOrderPalettes, sideOrderChallenge, sideOrderColorChips, sideOrderEnemies, tryDetails}`; the Side Order fields are `null` for players without the DLC |
 
-
-
 ## Running the Go app directly
 
 The app talks to the sidecar over HTTP and has no other runtime dependencies. Make sure the bridge is reachable (either run `docker compose up nxapi` or run the bridge yourself with `go run ./nxapi-bridge` plus a local `nxapi` install).
@@ -60,17 +58,23 @@ The app talks to the sidecar over HTTP and has no other runtime dependencies. Ma
 ```
 Usage of ./alterna-freshness-league:
   -league value
-        Contestants json string, tries to read 'contestants.json' file if not set
+        Contestants json string; falls back to CONTESTANTS env var, then 'contestants.json'
   -port string
         Port to bind to (default "8080")
   -proxy
         Start in proxy mode
- ```
-
-What does it look like? Something like this:
-![web example](alterna%20freshness%20league.png)
   -sidecar-url string
         Base URL for the nxapi-bridge sidecar (default "http://127.0.0.1:2727")
 ```
 
 Note: Nintendo authentication tokens are sent through the `nxapi` sidecar, which forwards relevant data to `nxapi-znca-api.fancy.org.uk` (Coral `f` generation). Review the upstream terms in the [nxapi-znca-api docs](https://github.com/samuelthomas2774/nxapi-znca-api/blob/docs/docs/public-api-terms.md).
+
+## What does it look like?
+
+The Alterna league (`/`):
+
+![Alterna league](alterna%20freshness%20league.png)
+
+The Side Order league (`/order`):
+
+![Side Order league](side%20order%20league.png)
