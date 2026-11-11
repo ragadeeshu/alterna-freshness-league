@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, viewport-fit=cover">
+    <title>Side Order League</title>
+    <link rel="icon" type="image/svg+xml" href="https://api.lp1.av5ja.srv.nintendo.net/static/media/side-order.6af83912151a8ce64c571b9aff376939.svg">
+    <link rel="stylesheet" href="static/fonts.css">
+    <link rel="stylesheet" href="static/ordercss.css">
+    <style>
+        #loader {
+            margin: 0;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            margin-right: -50%;
+            transform: scale(50%) translate(-50%, -50%);
+            transform-origin: 0% 0%;
+        }
+
+        #cover {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            transition: opacity 1s;
+            -webkit-transition: opacity 1s;
+            z-index: 5;
+            opacity: 1;
+            pointer-events: none;
+            background-color: var(--color-background);
+        }
+    </style>
+</head>
+
+<body>
+    <div id="cover">
+        <img id="loader" src="https://api.lp1.av5ja.srv.nintendo.net/static/media/loading.152225138e7c914c7d3f.gif" alt="Loading">
+    </div>
+    <div id="wrapper">
+    </div>
+    <!-- Run summary overlay, filled from a run card's <template class="OrderRunDetail">. -->
+    <div id="modal" class="ReactModal__Overlay StyledModal__Overlay" hidden>
+        <div class="ReactModal__Content StyledModal_modalContent" role="dialog" aria-modal="true">
+            <div id="modal-body" class="StyledModal_Container"></div>
+            <div class="StyledModal_ButtonWrapper"><button type="button" id="modal-close">Close</button></div>
+        </div>
+    </div>
+    <script>
+        var modal = document.getElementById("modal");
+        var modalBody = document.getElementById("modal-body");
+        var lastCard = null;
+
+        function openRunDetail(card) {
+            var detail = card.querySelector("template.OrderRunDetail");
+            if (!detail) return;
+            lastCard = card;
+            modalBody.replaceChildren(document.importNode(detail.content, true));
+            modalBody.scrollTop = 0;
+            modal.hidden = false;
+            document.body.classList.add("OrderModalOpen");
+            requestAnimationFrame(function () { modal.classList.add("ReactModal__Overlay--after-open"); });
+            document.getElementById("modal-close").focus();
+        }
+
+        function closeRunDetail() {
+            if (modal.hidden) return;
+            modal.classList.remove("ReactModal__Overlay--after-open");
+            document.body.classList.remove("OrderModalOpen");
+            setTimeout(function () { modal.hidden = true; modalBody.replaceChildren(); }, 200);
+            if (lastCard) lastCard.focus();
+        }
+
+        document.getElementById("wrapper").addEventListener("click", function (e) {
+            var card = e.target.closest(".OrderRunCardClickable");
+            if (card) openRunDetail(card);
+        });
+        document.getElementById("wrapper").addEventListener("keydown", function (e) {
+            var card = e.target.closest(".OrderRunCardClickable");
+            if (card && (e.key === "Enter" || e.key === " ")) {
+                e.preventDefault();
+                openRunDetail(card);
+            }
+        });
+        document.getElementById("modal-close").addEventListener("click", closeRunDetail);
+        modal.addEventListener("click", function (e) { if (e.target === modal) closeRunDetail(); });
+        document.addEventListener("keydown", function (e) { if (e.key === "Escape") closeRunDetail(); });
+
+        var xhttp = new XMLHttpRequest();
+        xhttp.onreadystatechange = function () {
+            if (this.readyState == 4 && this.status == 200) {
+                document.getElementById("wrapper").innerHTML = this.responseText
+                var script = document.createElement('script');
+                script.src = "https://buttons.github.io/buttons.js";
+                document.head.appendChild(script);
+                document.getElementById("cover").style.opacity = '0'
+            }
+        };
+        xhttp.open("GET", "order/league", true);
+        xhttp.send();
+    </script>
+</body>
+
+</html>

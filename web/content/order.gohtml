@@ -1,0 +1,223 @@
+{{- define "nameplate" -}}
+{{$fill := printf "rgba(%v, %v, %v, %v)" .NamePlate.TextR .NamePlate.TextG .NamePlate.TextB .NamePlate.TextA}}
+<svg class="OrderNamePlate" viewBox="0 0 700 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+        <clipPath id="roundedCorner">
+            <rect width="700" height="200" x="0" y="0" rx="6"></rect>
+        </clipPath>
+    </defs>
+    <g opacity="1">
+        <image clip-path="url(#roundedCorner)" width="700" height="200" x="0" y="0" href="{{.NamePlate.BackgroundImageURL}}"></image>
+        <text x="0" y="43" fill="{{$fill}}" transform="translate(18,0) skewX(-5) scale(1,1)" font-size="36px">{{.ByName}}</text>
+        <text x="0" y="119" text-anchor="middle" class="NamePlate" fill="{{$fill}}" font-size="65px" transform="translate(350,0) scale(1,1)">{{.Name}}</text>
+        <text x="24.5" y="184" fill="{{$fill}}" font-size="24px">#{{.NameId}}</text>
+        {{$x := 480.5}}
+        {{range $badge := .NamePlate.BadgeURLs}}
+        <image x="{{$x}}" y="127.5" width="69" height="69" href="{{$badge}}"></image>
+        {{$x = badgeinc $x}}
+        {{end}}
+    </g>
+</svg>
+{{- end -}}
+
+{{- define "rundetail" -}}
+{{/* SplatNet's palette (color chip) summary + Marina's hacks + run footer, for an *OrderRun.
+     Embedded in each run card and shown in the overlay when the card is clicked. */}}
+<div class="SideOrderPalleteModal_container">
+    <div class="SideOrderPalleteModal_paletteHeader"><img src="{{.PaletteIconURL}}" alt=""><p>{{.PaletteName}}</p><p class="OrderModalSubtitle">{{.Player.Name}} · {{.Result}}{{if .PlayedDate}} · {{.PlayedDate}}{{end}}</p></div>
+    {{range $group := .Detail.ChipGroups}}
+    <div class="Common_cellGrid">
+        <h3 class="Common_cellTitle SideOrderPalleteModal_cellTitle"><span class="SideOrderPalleteModal_cellTitleImg OrderChipGroupIcon" data-group="{{$group.Group}}"></span>{{$group.Title}}</h3>
+        {{range $chip := $group.Chips}}
+        <div class="Common_cell SideOrderChipRecordItem_cell">
+            <div class="SideOrderChipRecordItem_chipImgs"><div class="SideOrderChipRecordItem_chipImgWrapper"><img class="SideOrderChipRecordItem_chipImg" src="{{$chip.ChipImageURL}}" alt=""></div><img class="SideOrderChipRecordItem_chipEffectIcon" src="{{$chip.IconURL}}" alt=""></div>
+            <p class="SideOrderChipRecordItem_chipName">{{$chip.Name}}</p>
+            {{if gt $chip.MaxLevel 1}}<div class="SideOrderChipRecordItem_counter" data-category-group="{{upper $group.Group}}">{{if $chip.Level}}<div class="SideOrderChipRecordItem_accumulateCount" data-accumulate-count="{{$chip.Level}}"></div>{{end}}<div class="SideOrderChipRecordItem_maxCount" data-max-accumulate-count="{{$chip.MaxLevel}}" aria-label="Ranks Set: {{$chip.Level}}">{{range $marked := $chip.LevelDots}}<span class="SideOrderChipRecordItem_dot{{if $marked}} SideOrderChipRecordItem_marked{{end}}"></span>{{end}}</div></div>{{end}}
+        </div>
+        {{end}}
+    </div>
+    {{end}}
+    <div class="OrderModalHacks">
+        <h2 class="SideOrderChallengeDetail_hackTitle"><span class="SideOrderChallengeDetail_hackTitleText">Marina's Hacks</span><span class="SideOrderChallengeDetail_hackLevel">Total: {{.Detail.HackTotal}}</span></h2>
+        <div class="Common_cellGrid">
+            {{range $category := .Detail.HackCategories}}
+            <div class="SideOrderChallengeDetail_hackCategory">
+                <div class="Common_cell SideOrderChallengeDetail_hackCategoryHeader"><span>{{$category.Name}}</span><span class="SideOrderChallengeDetail_hackCategoryHeaderLevel">{{$category.Level}}</span></div>
+                {{range $hack := $category.Hacks}}
+                <div class="Common_cell SideOrderChallengeDetail_hackCategoryHack"><img src="{{$hack.IconURL}}" alt=""><div>{{$hack.Name}}</div><div class="SideOrderChallengeDetail_hackCategoryLevelMeter" data-current-level="{{$hack.Level}}">{{range $active := $hack.Meter}}<div class="SideOrderChallengeDetail_hackCategoryLevelMeterCell{{if $active}} SideOrderChallengeDetail_isActive{{end}}"></div>{{end}}</div></div>
+                {{end}}
+            </div>
+            {{end}}
+        </div>
+        <div class="SideOrderChallengeDetail_footer">
+            {{if .Detail.Bosses}}<div class="SideOrderChallengeDetail_footerItem SideOrderChallengeDetail_footerBosses">{{range $boss := .Detail.Bosses}}<div class="SideOrderChallengeDetail_footerBoss"><img class="SideOrderChallengeDetail_footerBossImage" src="{{$boss.ImageURL}}" alt="">{{$boss.Name}}</div>{{end}}</div>{{end}}
+            <div class="SideOrderChallengeDetail_footerItem">Membux Spent at Vending Machines: {{.Detail.MembuxSpent}}</div>
+            <div class="SideOrderChallengeDetail_footerItem">Floor Resets: {{.Detail.FloorResets}}</div>
+        </div>
+    </div>
+</div>
+{{- end -}}
+
+{{- define "runcard" -}}
+{{/* A SplatNet-style run detail card for an *OrderRun. */}}
+<div class="SideOrderChallengeDetail_backgroundWhite OrderRunCard{{if .Detail}} OrderRunCardClickable{{end}}"{{if .Detail}} role="button" tabindex="0" title="Show color chips and hacks"{{end}}>
+    {{if .Detail}}<template class="OrderRunDetail">{{template "rundetail" .}}</template>{{end}}
+    <div class="SideOrderChallengeDetail_header OrderRunCardHeader">
+        <div class="SideOrderChallengeDetail_headerFloor">
+            <div class="SideOrderChallengeDetail_headerFloorInner"><span>{{.Floor}}</span><small>F</small></div>
+        </div>
+        <div class="SideOrderChallengeDetail_headerInfoList">
+            <div class="SideOrderChallengeDetail_headerInfoListItem SideOrderChallengeDetail_resultInfo"><span class="OrderSplashTarget">{{if eq .Highlight "time"}}<img class="OrderSplash" src="https://api.lp1.av5ja.srv.nintendo.net/static/media/highScoreBg.8449d9b7941c5265e0189b2caa51d883.svg" alt="Fastest!">{{end}}<span{{if .NotCleared}} class="OrderNotClearedText"{{end}}>{{.Result}}</span></span></div>
+        </div>
+        <div class="OrderRunCorner{{if eq .Placement 1}} Win{{end}}">{{if .Placement}}{{.Placement}}{{ordinalSuffix .Placement}} · {{end}}+{{.Points}}p</div>
+    </div>
+    <div class="SideOrderChallengeDetail_paletteInfo">
+        <div class="SideOrderChallengeDetail_paletteInfoUpper">
+            {{if .ShowPalette}}
+            <div class="SideOrderChallengeDetail_paletteInfoName"><img class="SideOrderChallengeDetail_paletteInfoIcon" src="{{.PaletteIconURL}}" alt=""><span>{{.PaletteName}}</span></div>
+            {{else}}
+            <div class="SideOrderChallengeDetail_paletteInfoName"><img class="SideOrderChallengeDetail_paletteInfoIcon OrderUserIcon" src="{{.Player.NsoImageUrl}}" alt=""><span>{{.Player.Name}}</span></div>
+            {{end}}
+            {{if .HasDetail}}
+            <div class="SideOrderChallengeDetail_paletteInfoCoinWrapper">
+                <div class="SideOrderChallengeDetail_paletteInfoCoin" title="Membux"><img src="https://api.lp1.av5ja.srv.nintendo.net/static/media/iconCoin.976f7f6321c6f21777295851efca5f1d.svg" alt="">{{.Coin}}</div>
+                <div class="SideOrderChallengeDetail_paletteInfoKey">{{$hachi := .IsHachi}}{{range $status := .KeyStatuses}}<span><img src="{{keyIcon $status $hachi}}" alt=""></span>{{end}}</div>
+            </div>
+            {{end}}
+        </div>
+        {{if not .NotCleared}}
+        <div class="SideOrderChallengeDetail_paletteInfoLower">
+            <div class="SideOrderChallengeDetail_paletteInfoWeaponWrapper">
+                <img class="SideOrderChallengeDetail_paletteInfoWeaponMain" src="{{.Weapons.MainImageURL}}" alt="{{.Weapons.MainName}}" title="{{.Weapons.MainName}}">
+                <img class="SideOrderChallengeDetail_paletteInfoWeapon" src="{{.Weapons.SubImageURL}}" alt="{{.Weapons.SubName}}" title="{{.Weapons.SubName}}">
+                <img class="SideOrderChallengeDetail_paletteInfoWeapon" src="{{.Weapons.SpecialImageURL}}" alt="{{.Weapons.SpecialName}}" title="{{.Weapons.SpecialName}}">
+            </div>
+            {{if .DroneSlots}}
+            <div>
+                <div class="SideOrderDroneActionList_container SideOrderDroneActionList_large"><img class="SideOrderDroneActionList_himeDroneIcon" src="https://api.lp1.av5ja.srv.nintendo.net/static/media/himeDrone.e2ab8fda5b5e689d1227fbce3f22ff29.svg" alt="">{{range $slot := .DroneSlots}}<span class="SideOrderDroneActionList_imageWrapper">{{if $slot}}<img src="{{$slot}}" alt="">{{end}}</span>{{end}}</div>
+            </div>
+            {{end}}
+        </div>
+        {{end}}
+    </div>
+    {{if .HasDetail}}
+    <div class="SideOrderChallengeDetail_chipSlotWrapper">
+        <div class="SideOrderPalettePlate_container" data-name="{{.PaletteKey}}">
+            <div class="SideOrderPalettePlate_plate">
+                <div class="SideOrderPalettePlate_knob"></div>
+                <div>
+                    <div class="SideOrderPalettePlate_plateInner">
+                        <div class="SideOrderPalettePlate_chartWrapper"><div class="SideOrderPalettePlate_chartGlow OrderPlateChart"></div><div class="SideOrderPalettePlate_chart OrderPlateChart"></div></div>
+                        <div class="SideOrderPalettePlate_npcWrapper">
+                            <div class="SideOrderPalettePlate_frameA"><div class="SideOrderPalettePlate_npcGlow OrderPlateNpcA"></div><div class="SideOrderPalettePlate_npc OrderPlateNpcA"></div></div>
+                            <div class="SideOrderPalettePlate_frameB"><div class="SideOrderPalettePlate_npcGlow OrderPlateNpcB"></div><div class="SideOrderPalettePlate_npc OrderPlateNpcB"></div></div>
+                        </div>
+                        <div class="SideOrderPalettePlate_dots"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="SideOrderChallengeDetail_chipSlotGrid">
+            {{range $chip := .ChipSlots}}{{if eq $chip.State "set"}}<div class="SideOrderChallengeDetail_chipSlot SideOrderChallengeDetail_setChipSlot" data-chip="{{$chip.Name}}"><img src="{{$chip.ImageURL}}" alt="{{$chip.Name}}"></div>{{else if eq $chip.State "disabled"}}<div class="SideOrderChallengeDetail_chipSlot SideOrderChallengeDetail_chipSlotDisabled"></div>{{else}}<div class="SideOrderChallengeDetail_chipSlot"></div>{{end}}{{end}}
+        </div>
+    </div>
+    {{end}}
+    {{if not .NotCleared}}
+    <div class="SideOrderChallengeDetail_score">
+        <div class="SideOrderChallengeDetail_scoreWrapper"><span class="SideOrderChallengeDetail_scoreLabel">SCORE</span><span class="SideOrderChallengeDetail_scoreValue OrderSplashTarget">{{if eq .Highlight "score"}}<img class="OrderSplash" src="https://api.lp1.av5ja.srv.nintendo.net/static/media/highScoreBg.8449d9b7941c5265e0189b2caa51d883.svg" alt="Largest!">{{end}}<span>{{.Score}}p</span></span></div>
+        <div class="SideOrderChallengeDetail_scoreWrapper"><span class="SideOrderChallengeDetail_scoreLabel">Clears</span><span class="SideOrderChallengeDetail_scoreValue">{{.PaletteClears}}</span></div>
+    </div>
+    {{end}}
+    {{if .HasDetail}}<div class="OrderRunMeta"><span>{{.PlayedDate}}</span><span>Hacks: {{.Hacks}}</span></div>{{end}}
+</div>
+{{- end -}}
+
+<div class="OrderPage">
+    <div class="NavigationBar_container">
+        <div class="NavigationBar_left"></div>
+        <div class="NavigationBar_content"><img class="NavigationBar_icon" src="https://api.lp1.av5ja.srv.nintendo.net/static/media/side-order.6af83912151a8ce64c571b9aff376939.svg" alt="">Side Order League</div>
+        <div class="NavigationBar_right"></div>
+    </div>
+
+    <div class="OrderHeader">
+        <h1 class="Common_title">Standings</h1>
+        <div class="SideOrderRecordPalette_rewardWrapper OrderStandingsFrame">
+            <p class="SideOrderRecordPalette_rewardTitle">Fastest Clear Wins! Eight's Palette Counts Double!</p>
+            <div class="OrderCardRow">
+                {{range $player := .PlayerResults}}
+                <div class="SideOrderRecordPalette_paletteRecord OrderStandingCard">
+                    <div class="SideOrderRecordPalette_paletteRecordHeader">
+                        <span class="SideOrderRecordPalette_paletteRecordName"><img class="SideOrderRecordPalette_paletteRecordIcon OrderUserIcon" src="{{$player.NsoImageUrl}}" alt=""><span>{{$player.NsoName}}</span></span>
+                        <span class="SideOrderRecordPalette_paletteRecordClearCount">Palettes: {{$player.PalettesCleared}}/{{$player.PaletteCount}}</span>
+                    </div>
+                    <div class="SideOrderRecordPalette_paletteRecordResult">
+                        <div class="SideOrderTryResult_container OrderProfileCard">
+                            <div class="SideOrderTryResult_weapon"><span class="OrderRank{{if eq $player.Rank 1}} Win{{end}}"><span>{{$player.Rank}}</span><small>{{ordinalSuffix $player.Rank}}</small></span></div>
+                            <div class="SideOrderTryResult_detail OrderProfileDetail">
+                                {{template "nameplate" $player.Profile}}
+                                <div class="SideOrderTryResult_score OrderTotal"><span class="SideOrderTryResult_scoreLabel">POINTS</span><span class="SideOrderTryResult_scoreScore"><span>{{$player.TotalScore}}p</span></span></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="OrderStats">
+                        <dl>
+                            <div><dt>Clears</dt><dd>{{$player.TotalClears}}</dd></div>
+                            <div><dt>Enemies splatted</dt><dd>{{thousands $player.EnemiesSplatted}}</dd></div>
+                            <div><dt>Best palette</dt><dd>{{if $player.BestPalette}}{{$player.BestPalette}} <small>{{formatTime $player.BestTime}}</small>{{else}}–{{end}}</dd></div>
+                            <div><dt>Worst palette</dt><dd>{{if $player.WorstPalette}}{{$player.WorstPalette}} <small>{{formatTime $player.WorstTime}}</small>{{else}}–{{end}}</dd></div>
+                            <div><dt>Most clears</dt><dd>{{if $player.MostClearsPalette}}{{$player.MostClearsPalette}} <small>{{$player.MostClears}} clears</small>{{else}}–{{end}}</dd></div>
+                            <div><dt>Color-chip completion</dt><dd>{{$player.ChipsMaxed}}/{{$player.ChipsTotal}}</dd></div>
+                        </dl>
+                        {{if $player.ChipUsage}}
+                        <div class="OrderChipWheel">
+                            <div class="OrderChipWheelChart" style="background: {{chipWheel $player.ChipUsage}}"><span>Color-Chip Usage</span></div>
+                            <ul class="OrderChipWheelTable">
+                                {{range $usage := $player.ChipUsage}}<li><span class="OrderChipWheelIcon" data-chip="{{$usage.Name}}"><img src="{{$usage.IconURL}}" alt="{{$usage.Name}}"></span><span>{{chipPercent $usage.Rate}}</span></li>{{end}}
+                            </ul>
+                        </div>
+                        {{end}}
+                    </div>
+                </div>
+                {{else}}
+                <p>No one with Side Order data yet.</p>
+                {{end}}
+            </div>
+        </div>
+    </div>
+
+    {{range $palette := .Palettes}}
+    <div class="OrderSection OrderPaletteSection">
+        <h2 class="OrderSectionTitle"><img src="{{$palette.NpcImageURL}}" alt=""><span>{{$palette.Name}}</span>{{if gt $palette.Multiplier 1}}<span class="OrderDouble">Double points!</span>{{end}}</h2>
+        <div class="OrderCardRow">
+            {{range $run := $palette.Runs}}
+            <div class="OrderRunColumn">
+                {{template "runcard" $run}}
+            </div>
+            {{end}}
+        </div>
+    </div>
+    {{end}}
+
+    {{if .HighScores}}
+    <div class="SideOrderRecordChallenge_highScore OrderSection">
+        <div class="SideOrderRecordChallenge_highScoreHeader"><span class="SideOrderRecordChallenge_highScoreTitle">High Score!</span><span class="SideOrderRecordChallenge_highScoreUpdatedAt">Largest score wins</span></div>
+        <div class="OrderCardRow">
+            {{range $hs := .HighScores}}
+            <div class="OrderRunColumn">
+                <div class="OrderRunOwner"><img class="OrderUserIcon" src="{{$hs.Player.NsoImageUrl}}" alt=""><span>{{$hs.Player.Name}}</span></div>
+                {{template "runcard" $hs}}
+            </div>
+            {{end}}
+        </div>
+    </div>
+    {{end}}
+
+    <div class="OrderFooter">
+        <span>This project is not affiliated with Nintendo.</span>
+        <span>All product names, logos, images, fonts, and brands are property of their respective owners.</span>
+        <span class="OrderFooterLinks">
+            <a class="github-button" href="https://github.com/ragadeeshu/alterna-freshness-league" data-show-count="true" aria-label="Star ragadeeshu/alterna-freshness-league on GitHub">Star</a>
+            <a class="github-button" href="https://github.com/ragadeeshu/alterna-freshness-league/issues" data-icon="octicon-issue-opened" aria-label="Issue ragadeeshu/alterna-freshness-league on GitHub">Issue</a>
+        </span>
+    </div>
+</div>

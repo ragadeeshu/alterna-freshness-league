@@ -7,6 +7,9 @@
 // human-readable output of `nxapi nso user` (which has no JSON mode) for the
 // NSO/Coral Mii avatar and display name; /api/splatnet3/records runs
 // `nxapi splatnet3 dump-records` and returns the resulting GraphQL payloads.
+// /api/splatnet3/side-order only gets a bullet token from `nxapi splatnet3
+// token` and then sends the Side Order GraphQL queries itself, because nxapi
+// doesn't know about them (see side_order.go).
 package main
 
 import (
@@ -83,6 +86,7 @@ func main() {
 
 	http.HandleFunc("/api/user", handleUser)
 	http.HandleFunc("/api/splatnet3/records", handleSplatnet3Records)
+	http.HandleFunc("/api/splatnet3/side-order", handleSplatnet3SideOrder)
 	log.Printf("nxapi-bridge %s listening on %s", version, listenAddr)
 	log.Fatal(http.ListenAndServe(listenAddr, nil))
 }

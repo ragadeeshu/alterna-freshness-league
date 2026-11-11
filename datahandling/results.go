@@ -26,13 +26,19 @@ type Stage struct {
 	Description string
 }
 
+// Profile is the player identity shown on both pages: NSO name/avatar and the
+// in-game nameplate.
+type Profile struct {
+	NsoImageUrl string
+	NsoName     string
+	ByName      string
+	Name        string
+	NameId      string
+	NamePlate   NamePlate
+}
+
 type PlayerResult struct {
-	NsoImageUrl        string
-	NsoName            string
-	ByName             string
-	Name               string
-	NameId             string
-	NamePlate          NamePlate
+	Profile
 	TotalScore         int
 	Rank               int
 	ExplorationRate    float64
@@ -122,24 +128,8 @@ func gatherWorldView(splatnetDatas []*SplatnetData) (world World) {
 func gatherPlayerTimes(splatnetDatas []*SplatnetData) []PlayerResult {
 	playerResults := []PlayerResult{}
 	for _, playerData := range splatnetDatas {
-		badgeURLs := []string{}
-		for _, badge := range playerData.HistoryRecord.Data.CurrentPlayer.NamePlate.Badges {
-			badgeURLs = append(badgeURLs, badge.Image.URL)
-		}
 		playerResult := PlayerResult{
-			NsoName:     playerData.NsoName,
-			NsoImageUrl: playerData.NsoImageUrl,
-			ByName:      playerData.HistoryRecord.Data.CurrentPlayer.ByName,
-			Name:        playerData.HistoryRecord.Data.CurrentPlayer.Name,
-			NameId:      playerData.HistoryRecord.Data.CurrentPlayer.NameId,
-			NamePlate: NamePlate{
-				BadgeURLs:          badgeURLs,
-				TextA:              playerData.HistoryRecord.Data.CurrentPlayer.NamePlate.Background.TextColor.A,
-				TextR:              playerData.HistoryRecord.Data.CurrentPlayer.NamePlate.Background.TextColor.R * 255,
-				TextG:              playerData.HistoryRecord.Data.CurrentPlayer.NamePlate.Background.TextColor.G * 255,
-				TextB:              playerData.HistoryRecord.Data.CurrentPlayer.NamePlate.Background.TextColor.B * 255,
-				BackgroundImageURL: playerData.HistoryRecord.Data.CurrentPlayer.NamePlate.Background.Image.URL,
-			},
+			Profile:            buildProfile(playerData.NsoName, playerData.NsoImageUrl, playerData.HistoryRecord),
 			ExplorationRate:    playerData.HeroRecord.Data.HeroRecord.ProgressRate,
 			ExplorationPhrase:  playerData.HeroRecord.Data.HeroRecord.ProgressPhrase,
 			ExplorationComment: playerData.HeroRecord.Data.HeroRecord.ProgressComment,
@@ -163,6 +153,29 @@ func gatherPlayerTimes(splatnetDatas []*SplatnetData) []PlayerResult {
 	return playerResults
 }
 
+func buildProfile(nsoName, nsoImageURL string, history historyRecordQueryResponse) Profile {
+	player := history.Data.CurrentPlayer
+	badgeURLs := []string{}
+	for _, badge := range player.NamePlate.Badges {
+		badgeURLs = append(badgeURLs, badge.Image.URL)
+	}
+	return Profile{
+		NsoName:     nsoName,
+		NsoImageUrl: nsoImageURL,
+		ByName:      player.ByName,
+		Name:        player.Name,
+		NameId:      player.NameId,
+		NamePlate: NamePlate{
+			BadgeURLs:          badgeURLs,
+			TextA:              player.NamePlate.Background.TextColor.A,
+			TextR:              player.NamePlate.Background.TextColor.R * 255,
+			TextG:              player.NamePlate.Background.TextColor.G * 255,
+			TextB:              player.NamePlate.Background.TextColor.B * 255,
+			BackgroundImageURL: player.NamePlate.Background.Image.URL,
+		},
+	}
+}
+
 func score(playerResults []PlayerResult, worldView *World) {
 	maxScore := len(playerResults)
 	numStages := 0
@@ -179,11 +192,14 @@ func score(playerResults []PlayerResult, worldView *World) {
 					}
 				}
 			}
-			sort.Slice(stageResultPointers, func(i, j int) bool { return stageResultPointers[i].Time < stageResultPointers[j].Time })
-			// award points and ranks
+			sort.SliceStable(stageResultPointers, func(i, j int) bool { return stageResultPointers[i].Time < stageResultPointers[j].Time })
+			// award ranks and points; equal times share a position and its points
+			ranks := sharedRanks(len(stageResultPointers), func(i, j int) bool {
+				return stageResultPointers[i].Time == stageResultPointers[j].Time
+			})
 			for i, stageResultPointer := range stageResultPointers {
-				stageResultPointer.Rank = i + 1
-				stageResultPointer.Score = maxScore - i
+				stageResultPointer.Rank = ranks[i]
+				stageResultPointer.Score = maxScore - (ranks[i] - 1)
 			}
 		}
 		// score site
@@ -200,10 +216,13 @@ func score(playerResults []PlayerResult, worldView *World) {
 				siteResultPointer.Score += stageResult.Score
 			}
 		}
-		sort.Slice(siteResultPointers, func(i, j int) bool { return siteResultPointers[i].Score > siteResultPointers[j].Score })
-		// award ranks
-		for index, siteResultPointer := range siteResultPointers {
-			siteResultPointer.Rank = index + 1
+		sort.SliceStable(siteResultPointers, func(i, j int) bool { return siteResultPointers[i].Score > siteResultPointers[j].Score })
+		// award ranks; equal scores share a position
+		siteRanks := sharedRanks(len(siteResultPointers), func(i, j int) bool {
+			return siteResultPointers[i].Score == siteResultPointers[j].Score
+		})
+		for i, siteResultPointer := range siteResultPointers {
+			siteResultPointer.Rank = siteRanks[i]
 		}
 	}
 	// total score
@@ -214,10 +233,13 @@ func score(playerResults []PlayerResult, worldView *World) {
 			}
 		}
 	}
-	sort.Slice(playerResults, func(i, j int) bool { return playerResults[i].TotalScore > playerResults[j].TotalScore })
+	sort.SliceStable(playerResults, func(i, j int) bool { return playerResults[i].TotalScore > playerResults[j].TotalScore })
+	playerRanks := sharedRanks(len(playerResults), func(i, j int) bool {
+		return playerResults[i].TotalScore == playerResults[j].TotalScore
+	})
 	freshnessThreshold := numStages * maxScore / (len(freshness) - 1)
 	for i := range playerResults {
-		playerResults[i].Rank = i + 1
+		playerResults[i].Rank = playerRanks[i]
 		playerResults[i].Freshness = freshness[playerResults[i].TotalScore/freshnessThreshold]
 		playerResults[i].BestSite = 1
 		playerResults[i].WorstSite = 6
@@ -235,4 +257,19 @@ func score(playerResults []PlayerResult, worldView *World) {
 			}
 		}
 	}
+}
+
+// sharedRanks gives the 1-based positions of an already sorted list where
+// equal entries share a position and the next one skips ahead: 1, 1, 3.
+// equal reports whether neighbours i and j are tied.
+func sharedRanks(n int, equal func(i, j int) bool) []int {
+	ranks := make([]int, n)
+	for i := range ranks {
+		if i > 0 && equal(i-1, i) {
+			ranks[i] = ranks[i-1]
+		} else {
+			ranks[i] = i + 1
+		}
+	}
+	return ranks
 }

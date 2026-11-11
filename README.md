@@ -25,7 +25,7 @@ Create a `contestants.json` with the following structure:
     ]
 }
 ```
-Which contains all of your contestants. You need either their session tokens, or you need them to run a proxy (see below). How to get a session token? If you use s3s you can grab it from your `config.txt`.
+Which contains all of your contestants. You need either their session tokens, or you need them to run a proxy (see below). A proxy is an instance started with `-proxy` (or `PROXY=true`); it serves its own contestants' data as JSON on `/` (Alterna) and `/order` (Side Order), and the main instance merges in every URL listed under `proxies`. How to get a session token? If you use s3s you can grab it from your `config.txt`.
 
 ## Running with Docker Compose (recommended)
 
@@ -35,7 +35,9 @@ docker compose up --build
 
 This starts:
 - `nxapi` sidecar on `:2727`, running the `nxapi-bridge` binary built from `./nxapi-bridge`. The bridge shells out to the `nxapi` CLI on every request.
-- `freshness-league` on `:8080`, which talks to the sidecar over HTTP only.
+- `freshness-league` on `:8080`, which talks to the sidecar over HTTP only. It serves two pages:
+  - `/`: the Alterna (hero mode) league.
+  - `/order`: the Side Order league, styled after SplatNet 3's Side Order pages, with each player's fastest run per palette (chip board, hacks, date) side by side. Each palette is a comparison won by the fastest clear (N points for 1st, N−1 for 2nd, … where N is the number of players with Side Order data; Eight's Palette counts double), plus one comparison for the highest score. Contestants without the Side Order DLC are left out of this page.
 
 The `freshness-league` container talks to the sidecar at `http://nxapi:2727`. All `nxapi` state (`/data/persist`) lives in the `nxapi-data` volume on the sidecar, so multiple `freshness-league` instances pointed at the same sidecar share one token cache.
 
@@ -47,6 +49,7 @@ The bridge intentionally exposes a tiny surface (the rest of `nxapi` is not reac
 | --- | --- | --- |
 | `GET` | `/api/user?token=<session_token>` | Runs `nxapi nso user` and extracts the NSO/Coral display name + Mii avatar URL, returned as `{nsoName, nsoImage}` |
 | `GET` | `/api/splatnet3/records?token=<session_token>` | Runs `nxapi splatnet3 dump-records --hero --history` and returns the raw GraphQL payloads as `{heroResult, historyPlayer}` |
+| `GET` | `/api/splatnet3/side-order?token=<session_token>` | Gets a SplatNet 3 bullet token from `nxapi splatnet3 token --json`, then runs SplatNet 3's `HistoryRecordQuery` and Side Order queries itself (nxapi doesn't know the Side Order queries): palettes, results/high score, color chips, field guide, and the run details (chip board, hacks, date) of each palette's fastest run and the high-score run. Run details never change, so the sidecar caches them for up to a year, on disk in the `nxapi-data` volume (`/data/side-order-runs`); a run is re-fetched a week before the signed image links inside it expire. Returns `{historyPlayer, sideOrderPalettes, sideOrderChallenge, sideOrderColorChips, sideOrderEnemies, tryDetails}`; the Side Order fields are `null` for players without the DLC |
 
 
 
